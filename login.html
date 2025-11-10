@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>СЭД-СТАВ | Вход в систему</title>
+    <link rel="stylesheet" href="style/styles.css">
+</head>
+
+<body class="auth-page">
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <img src="img/logo.svg" alt="Логотип СЭД-СТАВ" class="auth-logo">
+                <p>Система электронного документооборота</p>
+            </div>
+
+            <form class="auth-form" id="loginForm">
+                <div class="form-group">
+                    <label class="form-label" for="email">Email</label>
+                    <input type="email" class="form-control" id="email" name="email" placeholder="Введите ваш email"
+                        required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="password">Пароль</label>
+                    <input type="password" class="form-control" id="password" name="password"
+                        placeholder="Введите пароль" required>
+                </div>
+
+                <div class="form-group form-remember">
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" id="remember" name="remember">
+                        <label class="form-check-label" for="remember">Запомнить меня</label>
+                    </div>
+                    <a href="#" class="forgot-password">Забыли пароль?</a>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-auth">Войти</button>
+            </form>
+
+            <div class="auth-footer">
+                <p>Нет аккаунта? <a href="register.html">Зарегистрироваться</a></p>
+            </div>
+        </div>
+    </div>
+
+    <script src="script/script.js"></script>
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            // Здесь будет запрос к серверу для авторизации
+            console.log('Авторизация:', { email, password });
+
+            // Временная заглушка - перенаправление на главную страницу
+            // В реальном приложении здесь будет проверка учетных данных
+            window.location.href = 'index.html';
+        });
+    </script>
+</body>
+
+</html>

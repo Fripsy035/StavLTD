@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>СЭД-СТАВ | Настройки</title>
+    <link rel="stylesheet" href="style/styles.css">
+</head>
+
+<body>
+    <header>
+        <div class="container">
+            <div class="header-top">
+                <div class="logo">
+                    <img src="img/logo.svg" alt="Логотип СЭД-СТАВ" class="logo-icon">
+                </div>
+
+                <div class="user-info">
+                    <div class="user-avatar">ИИ</div>
+                    <div>
+                        <div class="user-name">Иванов Иван</div>
+                        <div class="user-role">Администратор</div>
+                    </div>
+                    <button class="logout-btn">Выйти</button>
+                </div>
+                <button class="mobile-menu-toggle">☰</button>
+            </div>
+        </div>
+        <nav id="main-nav">
+            <div class="nav-container">
+                <ul class="nav-menu">
+                    <li><a href="index.html">Главная</a></li>
+                    <li><a href="documents.html">Документы</a></li>
+                    <li><a href="approvals.html">Согласования</a></li>
+                    <li><a href="reports.html">Отчеты</a></li>
+                    <li><a href="settings.html" class="active">Настройки</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+
+    <div class="container">
+        <div class="main-content">
+            <div class="content">
+                <div class="section-header">
+                    <h2 class="section-title">Настройки системы</h2>
+                </div>
+
+                <div class="settings-container">
+                    <aside class="settings-sidebar">
+                        <ul class="settings-nav">
+                            <li><a href="#general" class="active">Общие настройки</a></li>
+                            <li><a href="#users">Пользователи</a></li>
+                            <li><a href="#workflow">Процессы</a></li>
+                            <li><a href="#notifications">Уведомления</a></li>
+                            <li><a href="#security">Безопасность</a></li>
+                            <li><a href="#backup">Резервное копирование</a></li>
+                            <li><a href="#system">Системные настройки</a></li>
+                        </ul>
+                    </aside>
+
+                    <main class="settings-content">
+                        <!-- Общие настройки -->
+                        <div id="general" class="settings-section">
+                            <div class="settings-card">
+                                <div class="settings-card-header">
+                                    <h3 class="settings-card-title">Основные настройки системы</h3>
+                                </div>
+                                <form class="settings-form">
+                                    <div class="form-group">
+                                        <label class="form-label" for="timezone">Часовой пояс</label>
+                                        <select class="form-control" id="timezone">
+                                            <option value="+3">Москва (UTC+3)</option>
+                                            <option value="+4">Самара (UTC+4)</option>
+                                            <option value="+5">Екатеринбург (UTC+5)</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label" for="date-format">Формат даты</label>
+                                        <select class="form-control" id="date-format">
+                                            <option value="dd.mm.yyyy">ДД.ММ.ГГГГ</option>
+                                            <option value="yyyy-mm-dd">ГГГГ-ММ-ДД</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <div class="form-check">
+                                            <input type="checkbox" class="form-check-input" id="email-notifications"
+                                                checked>
+                                            <label class="form-check-label" for="email-notifications">Включить
+                                                email-уведомления</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input type="checkbox" class="form-check-input" id="auto-logout" checked>
+                                            <label class="form-check-label" for="auto-logout">Автоматический выход после
+                                                30 минут неактивности</label>
+                                        </div>
+                                    </div>
+
+                                    <button type="button" class="btn btn-primary">Сохранить настройки</button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Пользователи -->
+                        <div id="users" class="settings-section" style="display: none;">
+                            <div class="settings-card">
+                                <div class="settings-card-header">
+                                    <h3 class="settings-card-title">Управление пользователями</h3>
+                                    <button class="btn btn-success">Добавить пользователя</button>
+                                </div>
+                                <ul class="user-list">
+                                    <li class="user-item">
+                                        <div class="user-avatar-sm">ИИ</div>
+                                        <div class="user-details">
+                                            <div class="user-name">Иванов Иван</div>
+                                            <div class="user-email">i.ivanov@stav-ltd.ru</div>
+                                            <div class="user-role">Администратор</div>
+                                        </div>
+                                        <div class="user-actions">
+                                            <button class="btn btn-secondary">Редактировать</button>
+                                            <button class="btn btn-danger">Удалить</button>
+                                        </div>
+                                    </li>
+                                    <li class="user-item">
+                                        <div class="user-avatar-sm">ПС</div>
+                                        <div class="user-details">
+                                            <div class="user-name">Петров Сергей</div>
+                                            <div class="user-email">s.petrov@stav-ltd.ru</div>
+                                            <div class="user-role">Редактор</div>
+                                        </div>
+                                        <div class="user-actions">
+                                            <button class="btn btn-secondary">Редактировать</button>
+                                            <button class="btn btn-danger">Удалить</button>
+                                        </div>
+                                    </li>
+                                    <li class="user-item">
+                                        <div class="user-avatar-sm">СМ</div>
+                                        <div class="user-details">
+                                            <div class="user-name">Сидорова Мария</div>
+                                            <div class="user-email">m.sidorova@stav-ltd.ru</div>
+                                            <div class="user-role">Просмотрщик</div>
+                                        </div>
+                                        <div class="user-actions">
+                                            <button class="btn btn-secondary">Редактировать</button>
+                                            <button class="btn btn-danger">Удалить</button>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Процессы -->
+                        <div id="workflow" class="settings-section" style="display: none;">
+                            <div class="settings-card">
+                                <div class="settings-card-header">
+                                    <h3 class="settings-card-title">Настройки процессов согласования</h3>
+                                </div>
+                                <form class="settings-form">
+                                    <div class="form-group">
+                                        <label class="form-label" for="default-approval-time">Срок согласования по
+                                            умолчанию (дни)</label>
+                                        <input type="number" class="form-control" id="default-approval-time" value="5"
+                                            min="1" max="30">
+                                        <div class="form-text">Количество рабочих дней для согласования документа</div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label" for="reminder-days">Напоминание за (дни)</label>
+                                        <input type="number" class="form-control" id="reminder-days" value="2" min="1"
+                                            max="10">
+                                        <div class="form-text">За сколько дней до окончания срока отправлять напоминание
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <div class="form-check">
+                                            <input type="checkbox" class="form-check-input" id="auto-escalation"
+                                                checked>
+                                            <label class="form-check-label" for="auto-escalation">Автоматическая
+                                                эскалация просроченных задач</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input type="checkbox" class="form-check-input" id="parallel-approval">
+                                            <label class="form-check-label" for="parallel-approval">Разрешить
+                                                параллельное согласование</label>
+                                        </div>
+                                    </div>
+
+                                    <button type="button" class="btn btn-primary">Сохранить настройки</button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Уведомления -->
+                        <div id="notifications" class="settings-section" style="display: none;">
+                            <div class="settings-card">
+                                <div class="settings-card-header">
+                                    <h3 class="settings-card-title">Настройки уведомлений</h3>
+                                </div>
+                                <form class="settings-form">
+                                    <div class="form-group">
+                                        <div class="form-check">
+                                            <input type="checkbox" class="form-check-input" id="notify-new-document"
+                                                checked>
+                                            <label class="form-check-label" for="notify-new-document">Уведомлять о новых
+                                                документах</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input type="checkbox" class="form-check-input" id="notify-approval"
+                                                checked>
+                                            <label class="form-check-label" for="notify-approval">Уведомлять о задачах
+                                                согласования</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input type="checkbox" class="form-check-input" id="notify-overdue" checked>
+                                            <label class="form-check-label" for="notify-overdue">Уведомлять о
+                                                просроченных задачах</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input type="checkbox" class="form-check-input" id="notify-comments">
+                                            <label class="form-check-label" for="notify-comments">Уведомлять о новых
+                                                комментариях</label>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label" for="notification-frequency">Частота уведомлений по
+                                            email</label>
+                                        <select class="form-control" id="notification-frequency">
+                                            <option value="immediately">Мгновенно</option>
+                                            <option value="hourly">Каждый час</option>
+                                            <option value="daily">Ежедневно</option>
+                                        </select>
+                                    </div>
+
+                                    <button type="button" class="btn btn-primary">Сохранить настройки</button>
+                                </form>
+                            </div>
+                        </div>
+                    </main>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>Система электронного документооборота "СЭД-СТАВ" © 2023</p>
+            <p>Компания "СТАВ ЛТД"</p>
+        </div>
+    </footer>
+
+    <script src="script/script.js"></script>
+</body>
+
+</html>

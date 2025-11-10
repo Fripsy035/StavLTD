@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>СЭД-СТАВ | Главная</title>
+    <link rel="stylesheet" href="style/styles.css">
+</head>
+
+<body>
+    <header>
+        <div class="container">
+            <div class="header-top">
+                <div class="logo">
+                    <img src="img/logo.svg" alt="Логотип СЭД-СТАВ" class="logo-icon">
+                </div>
+
+                <div class="user-info">
+                    <div class="user-avatar">ИИ</div>
+                    <div>
+                        <div class="user-name">Иванов Иван</div>
+                        <div class="user-role">Администратор</div>
+                    </div>
+                    <button class="logout-btn">Выйти</button>
+                </div>
+                <button class="mobile-menu-toggle">☰</button>
+            </div>
+        </div>
+        <nav id="main-nav">
+            <div class="nav-container">
+                <ul class="nav-menu">
+                    <li><a href="index.html" class="active">Главная</a></li>
+                    <li><a href="documents.html">Документы</a></li>
+                    <li><a href="approvals.html">Согласования</a></li>
+                    <li><a href="reports.html">Отчеты</a></li>
+                    <li><a href="settings.html">Настройки</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    <div class="search-container">
+        <div class="container">
+            <div class="search-box">
+                <input type="text" class="search-input" placeholder="Поиск по документам...">
+                <button class="search-button">Найти</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="main-content">
+            <aside class="sidebar">
+                <div class="sidebar-section">
+                    <h3>Фильтры</h3>
+                    <ul class="filter-options">
+                        <li><a href="#">Все документы <span class="filter-count">142</span></a></li>
+                        <li><a href="#">Черновики <span class="filter-count">23</span></a></li>
+                        <li><a href="#">На согласовании <span class="filter-count">15</span></a></li>
+                        <li><a href="#">Согласованные <span class="filter-count">87</span></a></li>
+                        <li><a href="#">Архивные <span class="filter-count">17</span></a></li>
+                    </ul>
+                </div>
+
+                <div class="sidebar-section">
+                    <h3>Категории</h3>
+                    <ul class="filter-options">
+                        <li><a href="#">Технические <span class="filter-count">45</span></a></li>
+                        <li><a href="#">Коммерческие <span class="filter-count">32</span></a></li>
+                        <li><a href="#">Проектные <span class="filter-count">28</span></a></li>
+                        <li><a href="#">Отчетные <span class="filter-count">37</span></a></li>
+                    </ul>
+                </div>
+            </aside>
+
+            <main class="content">
+                <div class="dashboard-section">
+                    <div class="section-header">
+                        <h2 class="section-title">Мои задачи согласования</h2>
+                        <div class="section-actions">
+                            <a href="#">Все задачи →</a>
+                        </div>
+                    </div>
+                    <ul class="task-list">
+                        <li class="task-item urgent" data-task-id="1">
+                            <div class="task-title">Согласование договора с ООО "СтройМаш"</div>
+                            <div class="task-meta">
+                                <span>Срок: до 15.10.2023</span>
+                                <span>Просрочено</span>
+                            </div>
+                        </li>
+                        <li class="task-item" data-task-id="2">
+                            <div class="task-title">Утверждение технического задания проекта "Гамма"</div>
+                            <div class="task-meta">
+                                <span>Срок: до 20.10.2023</span>
+                                <span>Осталось 3 дня</span>
+                            </div>
+                        </li>
+                        <li class="task-item" data-task-id="3">
+                            <div class="task-title">Визирование акта выполненных работ №245</div>
+                            <div class="task-meta">
+                                <span>Срок: до 25.10.2023</span>
+                                <span>Осталось 8 дней</span>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="dashboard-section">
+                    <div class="section-header">
+                        <h2 class="section-title">Недавние документы</h2>
+                        <div class="section-actions">
+                            <a href="#">Все документы →</a>
+                        </div>
+                    </div>
+                    <ul class="document-list">
+                        <li class="document-item">
+                            <div class="document-details">
+                                <div class="document-name">Техническое задание проект "Гамма"</div>
+                                <div class="document-meta">
+                                    <div>Изменен: 12.10.2023</div>
+                                    <div><span class="status status-review">На согласовании</span></div>
+                                    <div>Автор: Петров А.С.</div>
+                                </div>
+                            </div>
+                            <div class="document-actions">
+                                <button class="btn btn-download">Скачать</button>
+                                <button class="btn btn-edit">Редактировать</button>
+                            </div>
+                        </li>
+                        <li class="document-item">
+                            <div class="document-details">
+                                <div class="document-name">Отчет по проекту "Альфа" за сентябрь</div>
+                                <div class="document-meta">
+                                    <div>Изменен: 10.10.2023</div>
+                                    <div><span class="status status-approved">Согласован</span></div>
+                                    <div>Автор: Сидорова М.П.</div>
+                                </div>
+                            </div>
+                            <div class="document-actions">
+                                <button class="btn btn-download">Скачать</button>
+                                <button class="btn btn-edit">Редактировать</button>
+                            </div>
+                        </li>
+                        <li class="document-item">
+                            <div class="document-details">
+                                <div class="document-name">Договор с ООО "СтройМаш"</div>
+                                <div class="document-meta">
+                                    <div>Изменен: 08.10.2023</div>
+                                    <div><span class="status status-rejected">Отклонен</span></div>
+                                    <div>Автор: Иванов И.И.</div>
+                                </div>
+                            </div>
+                            <div class="document-actions">
+                                <button class="btn btn-download">Скачать</button>
+                                <button class="btn btn-edit">Редактировать</button>
+                            </div>
+                        </li>
+                        <li class="document-item">
+                            <div class="document-details">
+                                <div class="document-name">Чертеж фундамента объекта "Бета"</div>
+                                <div class="document-meta">
+                                    <div>Изменен: 05.10.2023</div>
+                                    <div><span class="status status-draft">Черновик</span></div>
+                                    <div>Автор: Васильев К.Д.</div>
+                                </div>
+                            </div>
+                            <div class="document-actions">
+                                <button class="btn btn-download">Скачать</button>
+                                <button class="btn btn-edit">Редактировать</button>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>Система электронного документооборота "СЭД-СТАВ" © 2023</p>
+            <p>Компания "СТАВ ЛТД"</p>
+        </div>
+    </footer>
+
+    <script src="script/script.js"></script>
+</body>
+
+</html>

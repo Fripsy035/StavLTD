@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>СЭД-СТАВ | Отчеты</title>
+    <link rel="stylesheet" href="style/styles.css">
+</head>
+
+<body>
+    <header>
+        <div class="container">
+            <div class="header-top">
+                <div class="logo">
+                    <img src="img/logo.svg" alt="Логотип СЭД-СТАВ" class="logo-icon">
+                </div>
+
+                <div class="user-info">
+                    <div class="user-avatar">ИИ</div>
+                    <div>
+                        <div class="user-name">Иванов Иван</div>
+                        <div class="user-role">Администратор</div>
+                    </div>
+                    <button class="logout-btn">Выйти</button>
+                </div>
+                <button class="mobile-menu-toggle">☰</button>
+            </div>
+        </div>
+        <nav id="main-nav">
+            <div class="nav-container">
+                <ul class="nav-menu">
+                    <li><a href="index.html">Главная</a></li>
+                    <li><a href="documents.html">Документы</a></li>
+                    <li><a href="approvals.html">Согласования</a></li>
+                    <li><a href="reports.html" class="active">Отчеты</a></li>
+                    <li><a href="settings.html">Настройки</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    <div class="search-container">
+        <div class="container">
+            <div class="search-box">
+                <input type="text" class="search-input" placeholder="Поиск по отчетам...">
+                <button class="search-button">Найти</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="main-content">
+            <div class="content">
+                <div class="section-header">
+                    <h2 class="section-title">Отчеты</h2>
+                </div>
+
+                <!-- Быстрая статистика -->
+                <div class="quick-stats">
+                    <div class="stat-card">
+                        <div class="value">142</div>
+                        <div class="label">Всего документов</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="value">15</div>
+                        <div class="label">На согласовании</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="value">87</div>
+                        <div class="label">Согласовано</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="value">23</div>
+                        <div class="label">Просрочено</div>
+                    </div>
+                </div>
+
+                <div class="tabs">
+                    <div class="tab active" data-tab="standard-reports">Стандартные отчеты</div>
+                    <div class="tab" data-tab="scheduled-reports">Запланированные</div>
+                    <div class="tab" data-tab="archive-reports">Архив отчетов</div>
+                </div>
+
+                <div class="tab-content active" id="standard-reports">
+                    <div class="report-grid">
+                        <!-- Отчет по документообороту -->
+                        <div class="report-card">
+                            <div class="report-header">
+                                <div>
+                                    <div class="report-title">Отчет по документообороту</div>
+                                    <div class="report-meta">Общий отчет по движению документов</div>
+                                </div>
+                                <div class="report-type">Общий</div>
+                            </div>
+                            <div class="report-stats">
+                                <div class="stat">
+                                    <div class="stat-value">142</div>
+                                    <div class="stat-label">Документов</div>
+                                </div>
+                                <div class="stat">
+                                    <div class="stat-value">87</div>
+                                    <div class="stat-label">Согласовано</div>
+                                </div>
+                                <div class="stat">
+                                    <div class="stat-value">15</div>
+                                    <div class="stat-label">В работе</div>
+                                </div>
+                            </div>
+                            <div class="report-period">
+                                <strong>Период:</strong> За последние 30 дней
+                            </div>
+                            <div class="report-description">
+                                Полный отчет по движению документов в системе: создание, согласование, статусы и сроки.
+                            </div>
+                            <div class="report-actions">
+                                <button class="btn btn-generate">Сформировать отчет</button>
+                                <button class="btn btn-schedule">Запланировать</button>
+                            </div>
+                        </div>
+
+                        <!-- Отчет по согласованиям -->
+                        <div class="report-card">
+                            <div class="report-header">
+                                <div>
+                                    <div class="report-title">Отчет по согласованиям</div>
+                                    <div class="report-meta">Статистика процессов согласования</div>
+                                </div>
+                                <div class="report-type">Аналитика</div>
+                            </div>
+                            <div class="report-stats">
+                                <div class="stat">
+                                    <div class="stat-value">23</div>
+                                    <div class="stat-label">Активных</div>
+                                </div>
+                                <div class="stat">
+                                    <div class="stat-value">5.2</div>
+                                    <div class="stat-label">Дней среднее</div>
+                                </div>
+                                <div class="stat">
+                                    <div class="stat-value">12%</div>
+                                    <div class="stat-label">Просрочено</div>
+                                </div>
+                            </div>
+                            <div class="report-period">
+                                <strong>Период:</strong> Текущий месяц
+                            </div>
+                            <div class="report-description">
+                                Детальная аналитика процессов согласования: сроки, задержки, эффективность сотрудников.
+                            </div>
+                            <div class="report-actions">
+                                <button class="btn btn-generate">Сформировать отчет</button>
+                                <button class="btn btn-schedule">Запланировать</button>
+                            </div>
+                        </div>
+
+                        <!-- Отчет по проектам -->
+                        <div class="report-card">
+                            <div class="report-header">
+                                <div>
+                                    <div class="report-title">Отчет по проектам</div>
+                                    <div class="report-meta">Документация по проектам</div>
+                                </div>
+                                <div class="report-type">Проектный</div>
+                            </div>
+                            <div class="report-stats">
+                                <div class="stat">
+                                    <div class="stat-value">3</div>
+                                    <div class="stat-label">Проекта</div>
+                                </div>
+                                <div class="stat">
+                                    <div class="stat-value">45</div>
+                                    <div class="stat-label">Документов</div>
+                                </div>
+                                <div class="stat">
+                                    <div class="stat-value">78%</div>
+                                    <div class="stat-label">Готовность</div>
+                                </div>
+                            </div>
+                            <div class="report-period">
+                                <strong>Период:</strong> С начала года
+                            </div>
+                            <div class="report-description">
+                                Отчет по документационному обеспечению проектов: статусы, распределение по типам,
+                                прогресс.
+                            </div>
+                            <div class="report-actions">
+                                <button class="btn btn-generate">Сформировать отчет</button>
+                                <button class="btn btn-schedule">Запланировать</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="scheduled-reports">
+                    <div class="report-grid">
+                        <div class="report-card">
+                            <div class="report-header">
+                                <div>
+                                    <div class="report-title">Еженедельный отчет по документообороту</div>
+                                    <div class="report-meta">Автоматически формируется каждый понедельник</div>
+                                </div>
+                                <div class="report-type">По расписанию</div>
+                            </div>
+                            <div class="report-period">
+                                <strong>Расписание:</strong> Каждый понедельник, 09:00
+                            </div>
+                            <div class="report-period">
+                                <strong>Получатели:</strong> Руководство, Отдел документооборота
+                            </div>
+                            <div class="report-description">
+                                Автоматический еженедельный отчет для отслеживания ключевых показателей
+                                документооборота.
+                            </div>
+                            <div class="report-actions">
+                                <button class="btn btn-view">Просмотреть последний</button>
+                                <button class="btn btn-download">Скачать</button>
+                                <button class="btn btn-schedule">Изменить расписание</button>
+                            </div>
+                        </div>
+
+                        <div class="report-card">
+                            <div class="report-header">
+                                <div>
+                                    <div class="report-title">Месячный отчет по согласованиям</div>
+                                    <div class="report-meta">Формируется 1 числа каждого месяца</div>
+                                </div>
+                                <div class="report-type">По расписанию</div>
+                            </div>
+                            <div class="report-period">
+                                <strong>Расписание:</strong> 1 число каждого месяца, 10:00
+                            </div>
+                            <div class="report-period">
+                                <strong>Получатели:</strong> Коммерческий директор, Начальники отделов
+                            </div>
+                            <div class="report-description">
+                                Ежемесячная статистика по процессам согласования для анализа эффективности и
+                                планирования.
+                            </div>
+                            <div class="report-actions">
+                                <button class="btn btn-view">Просмотреть последний</button>
+                                <button class="btn btn-download">Скачать</button>
+                                <button class="btn btn-schedule">Изменить расписание</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="archive-reports">
+                    <div class="report-grid">
+                        <div class="report-card">
+                            <div class="report-header">
+                                <div>
+                                    <div class="report-title">Отчет по документообороту за сентябрь 2023</div>
+                                    <div class="report-meta">Сформирован: 01.10.2023 09:15</div>
+                                </div>
+                                <div class="report-type">Архивный</div>
+                            </div>
+                            <div class="report-period">
+                                <strong>Период:</strong> 01.09.2023 - 30.09.2023
+                            </div>
+                            <div class="report-description">
+                                Полный отчет по документообороту за сентябрь 2023 года.
+                            </div>
+                            <div class="report-actions">
+                                <button class="btn btn-view">Просмотреть</button>
+                                <button class="btn btn-download">Скачать</button>
+                            </div>
+                        </div>
+
+                        <div class="report-card">
+                            <div class="report-header">
+                                <div>
+                                    <div class="report-title">Отчет по согласованиям за август 2023</div>
+                                    <div class="report-meta">Сформирован: 01.09.2023 10:30</div>
+                                </div>
+                                <div class="report-type">Архивный</div>
+                            </div>
+                            <div class="report-period">
+                                <strong>Период:</strong> 01.08.2023 - 31.08.2023
+                            </div>
+                            <div class="report-description">
+                                Аналитический отчет по процессам согласования за август 2023 года.
+                            </div>
+                            <div class="report-actions">
+                                <button class="btn btn-view">Просмотреть</button>
+                                <button class="btn btn-download">Скачать</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>Система электронного документооборота "СЭД-СТАВ" © 2023</p>
+            <p>Компания "СТАВ ЛТД"</p>
+        </div>
+    </footer>
+
+    <script src="script/script.js"></script>
+</body>
+
+</html>
