@@ -40,25 +40,26 @@
                 <button type="submit" class="btn btn-primary btn-auth">Войти</button>
             </form>
 
-            <div class="auth-footer">
-                <p>Нет аккаунта? <a href="register.html">Зарегистрироваться</a></p>
-            </div>
         </div>
     </div>
 
+    <script src="script/database.js"></script>
     <script src="script/script.js"></script>
+    <script src="script/auth.js"></script>
     <script>
-        document.getElementById('loginForm').addEventListener('submit', function (e) {
+        document.getElementById('loginForm').addEventListener('submit', async function (e) {
             e.preventDefault();
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
+            const remember = document.getElementById('remember').checked;
 
-            // Здесь будет запрос к серверу для авторизации
-            console.log('Авторизация:', { email, password });
-
-            // Временная заглушка - перенаправление на главную страницу
-            // В реальном приложении здесь будет проверка учетных данных
-            window.location.href = 'index.html';
+            const result = await auth.login(email, password, remember);
+            
+            if (result.success) {
+                window.location.href = 'index.html';
+            } else {
+                alert(result.message || 'Неверный email или пароль');
+            }
         });
     </script>
 </body>

@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>СЭД-СТАВ | Профиль пользователя</title>
+    <link rel="stylesheet" href="style/styles.css">
+</head>
+
+<body>
+    <header>
+        <div class="container">
+            <div class="header-top">
+                <div class="logo">
+                    <img src="img/logo.svg" alt="Логотип СЭД-СТАВ" class="logo-icon">
+                </div>
+
+                <div class="user-info">
+                    <div class="user-avatar" id="userAvatar">ИИ</div>
+                    <div>
+                        <div class="user-name" id="userName">Иванов Иван</div>
+                        <div class="user-role" id="userRole">Администратор</div>
+                    </div>
+                    <button class="logout-btn">Выйти</button>
+                </div>
+                <button class="mobile-menu-toggle">☰</button>
+            </div>
+        </div>
+        <nav id="main-nav">
+            <div class="nav-container">
+                <ul class="nav-menu">
+                    <li><a href="index.html">Главная</a></li>
+                    <li><a href="documents.html">Документы</a></li>
+                    <li><a href="approvals.html">Согласования</a></li>
+                    <li><a href="reports.html">Отчеты</a></li>
+                    <li><a href="settings.html">Настройки</a></li>
+                    <li><a href="profile.html" class="active">Профиль</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    <div class="container">
+        <div class="main-content">
+            <div class="content">
+                <div class="section-header">
+                    <h2 class="section-title">Профиль пользователя</h2>
+                </div>
+
+                <div class="profile-container">
+                    <div class="profile-header">
+                        <div class="profile-avatar-large" id="profileAvatar">ИИ</div>
+                        <div class="profile-info">
+                            <h3 id="profileName">Иванов Иван</h3>
+                            <p id="profileEmail">i.ivanov@stav-ltd.ru</p>
+                            <p id="profileRole">Администратор</p>
+                        </div>
+                    </div>
+
+                    <div class="profile-tabs">
+                        <div class="tab active" data-tab="personal">Личные данные</div>
+                        <div class="tab" data-tab="security">Безопасность</div>
+                        <div class="tab" data-tab="activity">Активность</div>
+                    </div>
+
+                    <div class="tab-content active" id="personal">
+                        <div class="settings-card">
+                            <div class="settings-card-header">
+                                <h3 class="settings-card-title">Личная информация</h3>
+                            </div>
+                            <form class="settings-form" id="personalForm">
+                                <div class="form-group">
+                                    <label class="form-label" for="fullName">ФИО</label>
+                                    <input type="text" class="form-control" id="fullName" name="fullName" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label" for="email">Email</label>
+                                    <input type="email" class="form-control" id="email" name="email" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label" for="phone">Телефон</label>
+                                    <input type="tel" class="form-control" id="phone" name="phone" placeholder="+7 (___) ___-__-__">
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label" for="department">Отдел</label>
+                                    <input type="text" class="form-control" id="department" name="department">
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label" for="position">Должность</label>
+                                    <input type="text" class="form-control" id="position" name="position">
+                                </div>
+
+                                <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="tab-content" id="security">
+                        <div class="settings-card">
+                            <div class="settings-card-header">
+                                <h3 class="settings-card-title">Смена пароля</h3>
+                            </div>
+                            <form class="settings-form" id="passwordForm">
+                                <div class="form-group">
+                                    <label class="form-label" for="currentPassword">Текущий пароль</label>
+                                    <input type="password" class="form-control" id="currentPassword" name="currentPassword" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label" for="newPassword">Новый пароль</label>
+                                    <input type="password" class="form-control" id="newPassword" name="newPassword" required minlength="6">
+                                    <div class="form-text">Минимум 6 символов</div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label" for="confirmNewPassword">Подтверждение нового пароля</label>
+                                    <input type="password" class="form-control" id="confirmNewPassword" name="confirmNewPassword" required>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary">Изменить пароль</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="tab-content" id="activity">
+                        <div class="settings-card">
+                            <div class="settings-card-header">
+                                <h3 class="settings-card-title">История активности</h3>
+                            </div>
+                            <div class="activity-list">
+                                <div class="activity-item">
+                                    <div class="activity-icon">📄</div>
+                                    <div class="activity-content">
+                                        <div class="activity-title">Создан документ "Техническое задание проект Гамма"</div>
+                                        <div class="activity-date">12.10.2023 14:30</div>
+                                    </div>
+                                </div>
+                                <div class="activity-item">
+                                    <div class="activity-icon">✓</div>
+                                    <div class="activity-content">
+                                        <div class="activity-title">Согласован документ "Отчет по проекту Альфа"</div>
+                                        <div class="activity-date">10.10.2023 11:15</div>
+                                    </div>
+                                </div>
+                                <div class="activity-item">
+                                    <div class="activity-icon">👤</div>
+                                    <div class="activity-content">
+                                        <div class="activity-title">Вход в систему</div>
+                                        <div class="activity-date">08.10.2023 09:00</div>
+                                    </div>
+                                </div>
+                                <div class="activity-item">
+                                    <div class="activity-icon">✏️</div>
+                                    <div class="activity-content">
+                                        <div class="activity-title">Изменен профиль</div>
+                                        <div class="activity-date">05.10.2023 16:45</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>Система электронного документооборота "СЭД-СТАВ" © 2023</p>
+            <p>Компания "СТАВ ЛТД"</p>
+        </div>
+    </footer>
+
+    <script src="script/database.js"></script>
+    <script src="script/script.js"></script>
+    <script src="script/auth.js"></script>
+    <script>
+        // Загрузка данных пользователя
+        document.addEventListener('DOMContentLoaded', function() {
+            const user = auth.getCurrentUser();
+            if (user) {
+                // Обновление информации в профиле
+                document.getElementById('profileName').textContent = user.fullName || user.name;
+                document.getElementById('profileEmail').textContent = user.email;
+                document.getElementById('profileRole').textContent = user.role || 'Пользователь';
+                
+                // Обновление аватара
+                const initials = auth.getInitials(user.fullName || user.name);
+                document.getElementById('profileAvatar').textContent = initials;
+                
+                // Заполнение формы
+                document.getElementById('fullName').value = user.fullName || user.name || '';
+                document.getElementById('email').value = user.email || '';
+                document.getElementById('phone').value = user.phone || '';
+                document.getElementById('department').value = user.department || '';
+                document.getElementById('position').value = user.position || '';
+            } else {
+                // Если пользователь не авторизован, перенаправляем на страницу входа
+                window.location.href = 'login.html';
+            }
+        });
+
+        // Обработка формы личных данных
+        document.getElementById('personalForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const user = auth.getCurrentUser();
+            if (user) {
+                const updatedUser = {
+                    ...user,
+                    fullName: document.getElementById('fullName').value,
+                    email: document.getElementById('email').value,
+                    phone: document.getElementById('phone').value,
+                    department: document.getElementById('department').value,
+                    position: document.getElementById('position').value
+                };
+                auth.updateUser(updatedUser);
+                
+                // Обновление отображения
+                document.getElementById('profileName').textContent = updatedUser.fullName;
+                document.getElementById('profileEmail').textContent = updatedUser.email;
+                const initials = auth.getInitials(updatedUser.fullName);
+                document.getElementById('profileAvatar').textContent = initials;
+                
+                // Обновление в header
+                document.getElementById('userName').textContent = updatedUser.fullName;
+                const headerInitials = auth.getInitials(updatedUser.fullName);
+                document.getElementById('userAvatar').textContent = headerInitials;
+                
+                alert('Данные успешно сохранены!');
+            }
+        });
+
+        // Обработка формы смены пароля
+        document.getElementById('passwordForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmNewPassword').value;
+
+            if (newPassword !== confirmPassword) {
+                alert('Пароли не совпадают!');
+                return;
+            }
+
+            const user = auth.getCurrentUser();
+            auth.changePassword(currentPassword, newPassword).then(result => {
+                if (result) {
+                    alert('Пароль успешно изменен!');
+                    document.getElementById('passwordForm').reset();
+                } else {
+                    alert('Неверный текущий пароль!');
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>
+

@@ -35,6 +35,7 @@
                     <li><a href="approvals.html">Согласования</a></li>
                     <li><a href="reports.html">Отчеты</a></li>
                     <li><a href="settings.html">Настройки</a></li>
+                    <li><a href="profile.html">Профиль</a></li>
                 </ul>
             </div>
         </nav>
@@ -79,31 +80,11 @@
                     <div class="section-header">
                         <h2 class="section-title">Мои задачи согласования</h2>
                         <div class="section-actions">
-                            <a href="#">Все задачи →</a>
+                            <a href="approvals.html">Все задачи →</a>
                         </div>
                     </div>
                     <ul class="task-list">
-                        <li class="task-item urgent" data-task-id="1">
-                            <div class="task-title">Согласование договора с ООО "СтройМаш"</div>
-                            <div class="task-meta">
-                                <span>Срок: до 15.10.2023</span>
-                                <span>Просрочено</span>
-                            </div>
-                        </li>
-                        <li class="task-item" data-task-id="2">
-                            <div class="task-title">Утверждение технического задания проекта "Гамма"</div>
-                            <div class="task-meta">
-                                <span>Срок: до 20.10.2023</span>
-                                <span>Осталось 3 дня</span>
-                            </div>
-                        </li>
-                        <li class="task-item" data-task-id="3">
-                            <div class="task-title">Визирование акта выполненных работ №245</div>
-                            <div class="task-meta">
-                                <span>Срок: до 25.10.2023</span>
-                                <span>Осталось 8 дней</span>
-                            </div>
-                        </li>
+                        <!-- Задачи загружаются динамически -->
                     </ul>
                 </div>
 
@@ -111,66 +92,11 @@
                     <div class="section-header">
                         <h2 class="section-title">Недавние документы</h2>
                         <div class="section-actions">
-                            <a href="#">Все документы →</a>
+                            <a href="documents.html">Все документы →</a>
                         </div>
                     </div>
                     <ul class="document-list">
-                        <li class="document-item">
-                            <div class="document-details">
-                                <div class="document-name">Техническое задание проект "Гамма"</div>
-                                <div class="document-meta">
-                                    <div>Изменен: 12.10.2023</div>
-                                    <div><span class="status status-review">На согласовании</span></div>
-                                    <div>Автор: Петров А.С.</div>
-                                </div>
-                            </div>
-                            <div class="document-actions">
-                                <button class="btn btn-download">Скачать</button>
-                                <button class="btn btn-edit">Редактировать</button>
-                            </div>
-                        </li>
-                        <li class="document-item">
-                            <div class="document-details">
-                                <div class="document-name">Отчет по проекту "Альфа" за сентябрь</div>
-                                <div class="document-meta">
-                                    <div>Изменен: 10.10.2023</div>
-                                    <div><span class="status status-approved">Согласован</span></div>
-                                    <div>Автор: Сидорова М.П.</div>
-                                </div>
-                            </div>
-                            <div class="document-actions">
-                                <button class="btn btn-download">Скачать</button>
-                                <button class="btn btn-edit">Редактировать</button>
-                            </div>
-                        </li>
-                        <li class="document-item">
-                            <div class="document-details">
-                                <div class="document-name">Договор с ООО "СтройМаш"</div>
-                                <div class="document-meta">
-                                    <div>Изменен: 08.10.2023</div>
-                                    <div><span class="status status-rejected">Отклонен</span></div>
-                                    <div>Автор: Иванов И.И.</div>
-                                </div>
-                            </div>
-                            <div class="document-actions">
-                                <button class="btn btn-download">Скачать</button>
-                                <button class="btn btn-edit">Редактировать</button>
-                            </div>
-                        </li>
-                        <li class="document-item">
-                            <div class="document-details">
-                                <div class="document-name">Чертеж фундамента объекта "Бета"</div>
-                                <div class="document-meta">
-                                    <div>Изменен: 05.10.2023</div>
-                                    <div><span class="status status-draft">Черновик</span></div>
-                                    <div>Автор: Васильев К.Д.</div>
-                                </div>
-                            </div>
-                            <div class="document-actions">
-                                <button class="btn btn-download">Скачать</button>
-                                <button class="btn btn-edit">Редактировать</button>
-                            </div>
-                        </li>
+                        <!-- Недавние документы загружаются динамически -->
                     </ul>
                 </div>
             </main>
@@ -184,7 +110,13 @@
         </div>
     </footer>
 
+    <script src="script/database.js"></script>
     <script src="script/script.js"></script>
+    <script src="script/auth.js"></script>
+    <script src="script/user-info.js"></script>
+    <script src="script/documents.js"></script>
+    <script src="script/approvals.js"></script>
+    <script src="script/index-page.js"></script>
 </body>
 
 </html>

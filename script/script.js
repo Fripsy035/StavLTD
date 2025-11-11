@@ -29,9 +29,10 @@ document.addEventListener('DOMContentLoaded', function () {
     if (logoutBtn) {
         logoutBtn.addEventListener('click', function () {
             if (confirm('Вы уверены, что хотите выйти из системы?')) {
-                // В реальном приложении здесь будет запрос на выход
-                console.log('Выход из системы выполнен');
-                // window.location.href = '/login'; // перенаправление на страницу входа
+                if (typeof auth !== 'undefined' && auth.logout) {
+                    auth.logout();
+                }
+                window.location.href = 'login.html';
             }
         });
     }

@@ -35,6 +35,7 @@
                     <li><a href="approvals.html" class="active">Согласования</a></li>
                     <li><a href="reports.html">Отчеты</a></li>
                     <li><a href="settings.html">Настройки</a></li>
+                    <li><a href="profile.html">Профиль</a></li>
                 </ul>
             </div>
         </nav>
@@ -64,166 +65,19 @@
 
                 <div class="tab-content active" id="my-approvals">
                     <div class="approval-grid">
-                        <!-- Договор с ООО "СтройМаш" - 5 этапов -->
-                        <div class="approval-card urgent">
-                            <div class="approval-header">
-                                <div>
-                                    <div class="approval-title">Договор с ООО "СтройМаш"</div>
-                                    <div class="approval-meta">Создан: 10.10.2023 | Срок: до 15.10.2023</div>
-                                </div>
-                                <div class="approval-status status-pending">Просрочено</div>
-                            </div>
-                            <div class="approval-progress">
-                                <div class="progress-bar">
-                                    <div class="progress-fill" style="width: 40%"></div>
-                                </div>
-                                <div class="progress-text">2 из 5 этапов завершено</div>
-                            </div>
-                            <div class="approval-steps">
-                                <div class="step completed">
-                                    <div class="step-icon">✓</div>
-                                    <div class="step-info">
-                                        <div class="step-name">Юридический отдел</div>
-                                        <div class="step-meta">Согласовано 12.10.2023</div>
-                                    </div>
-                                </div>
-                                <div class="step completed">
-                                    <div class="step-icon">✓</div>
-                                    <div class="step-info">
-                                        <div class="step-name">Бухгалтерия</div>
-                                        <div class="step-meta">Согласовано 13.10.2023</div>
-                                    </div>
-                                </div>
-                                <div class="step current">
-                                    <div class="step-icon">!</div>
-                                    <div class="step-info">
-                                        <div class="step-name">Коммерческий директор</div>
-                                        <div class="step-meta">Ожидает вашего решения</div>
-                                    </div>
-                                </div>
-                                <div class="step pending">
-                                    <div class="step-icon">3</div>
-                                    <div class="step-info">
-                                        <div class="step-name">Главный инженер</div>
-                                        <div class="step-meta">Ожидает предыдущих этапов</div>
-                                    </div>
-                                </div>
-                                <div class="step pending">
-                                    <div class="step-icon">4</div>
-                                    <div class="step-info">
-                                        <div class="step-name">Генеральный директор</div>
-                                        <div class="step-meta">Ожидает предыдущих этапов</div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="approval-actions">
-                                <button class="btn btn-approve">Согласовать</button>
-                                <button class="btn btn-reject">Отклонить</button>
-                                <button class="btn btn-revise">Вернуть на доработку</button>
-                                <button class="btn btn-view">Просмотреть</button>
-                            </div>
-                        </div>
-
-                        <!-- Техническое задание проект "Гамма" - 4 этапа -->
-                        <div class="approval-card normal">
-                            <div class="approval-header">
-                                <div>
-                                    <div class="approval-title">Техническое задание проект "Гамма"</div>
-                                    <div class="approval-meta">Создан: 08.10.2023 | Срок: до 20.10.2023</div>
-                                </div>
-                                <div class="approval-status status-in-progress">В работе</div>
-                            </div>
-                            <div class="approval-progress">
-                                <div class="progress-bar">
-                                    <div class="progress-fill" style="width: 75%"></div>
-                                </div>
-                                <div class="progress-text">3 из 4 этапов завершено</div>
-                            </div>
-                            <div class="approval-steps">
-                                <div class="step completed">
-                                    <div class="step-icon">✓</div>
-                                    <div class="step-info">
-                                        <div class="step-name">Технический отдел</div>
-                                        <div class="step-meta">Согласовано 09.10.2023</div>
-                                    </div>
-                                </div>
-                                <div class="step completed">
-                                    <div class="step-icon">✓</div>
-                                    <div class="step-info">
-                                        <div class="step-name">Главный инженер</div>
-                                        <div class="step-meta">Согласовано 10.10.2023</div>
-                                    </div>
-                                </div>
-                                <div class="step completed">
-                                    <div class="step-icon">✓</div>
-                                    <div class="step-info">
-                                        <div class="step-name">Начальник ПТО</div>
-                                        <div class="step-meta">Согласовано 11.10.2023</div>
-                                    </div>
-                                </div>
-                                <div class="step current">
-                                    <div class="step-icon">!</div>
-                                    <div class="step-info">
-                                        <div class="step-name">Коммерческий директор</div>
-                                        <div class="step-meta">Ожидает вашего решения</div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="approval-actions">
-                                <button class="btn btn-approve">Согласовать</button>
-                                <button class="btn btn-reject">Отклонить</button>
-                                <button class="btn btn-revise">Вернуть на доработку</button>
-                                <button class="btn btn-view">Просмотреть</button>
-                            </div>
-                        </div>
+                        <!-- Согласования загружаются динамически -->
                     </div>
                 </div>
 
                 <div class="tab-content" id="initiated">
                     <div class="approval-grid">
-                        <div class="approval-card completed">
-                            <div class="approval-header">
-                                <div>
-                                    <div class="approval-title">Отчет по проекту "Альфа" за сентябрь</div>
-                                    <div class="approval-meta">Создан: 01.10.2023 | Завершен: 10.10.2023</div>
-                                </div>
-                                <div class="approval-status status-approved">Согласован</div>
-                            </div>
-                            <div class="approval-progress">
-                                <div class="progress-bar">
-                                    <div class="progress-fill" style="width: 100%"></div>
-                                </div>
-                                <div class="progress-text">Все этапы завершены</div>
-                            </div>
-                            <div class="approval-actions">
-                                <button class="btn btn-view">Просмотреть</button>
-                                <button class="btn btn-download">Скачать</button>
-                            </div>
-                        </div>
+                        <!-- Инициированные согласования загружаются динамически -->
                     </div>
                 </div>
 
                 <div class="tab-content" id="completed">
                     <div class="approval-grid">
-                        <div class="approval-card completed">
-                            <div class="approval-header">
-                                <div>
-                                    <div class="approval-title">Договор с ООО "ТехСтрой"</div>
-                                    <div class="approval-meta">Создан: 15.09.2023 | Завершен: 28.09.2023</div>
-                                </div>
-                                <div class="approval-status status-approved">Согласован</div>
-                            </div>
-                            <div class="approval-progress">
-                                <div class="progress-bar">
-                                    <div class="progress-fill" style="width: 100%"></div>
-                                </div>
-                                <div class="progress-text">Все этапы завершены</div>
-                            </div>
-                            <div class="approval-actions">
-                                <button class="btn btn-view">Просмотреть</button>
-                                <button class="btn btn-download">Скачать</button>
-                            </div>
-                        </div>
+                        <!-- Завершенные согласования загружаются динамически -->
                     </div>
                 </div>
             </div>
@@ -237,7 +91,13 @@
         </div>
     </footer>
 
+    <script src="script/database.js"></script>
     <script src="script/script.js"></script>
+    <script src="script/auth.js"></script>
+    <script src="script/user-info.js"></script>
+    <script src="script/documents.js"></script>
+    <script src="script/approvals.js"></script>
+    <script src="script/approvals-page.js"></script>
 </body>
 
 </html>
