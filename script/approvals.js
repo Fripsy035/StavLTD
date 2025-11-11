@@ -25,6 +25,13 @@ const approvalsManager = {
 
     // Маппинг согласования из БД в формат приложения
     _mapApprovalFromDB: function(dbProcess) {
+        if (!dbProcess) {
+            console.error('Попытка маппинга пустого процесса согласования');
+            return null;
+        }
+        
+        console.log('Маппинг процесса согласования:', dbProcess);
+        
         const document = database.find('documents', d => d.document_id === dbProcess.document_id);
         const initiator = database.find('users', u => u.user_id === dbProcess.initiator_id);
         const steps = database.findAll('approval_steps', s => s.process_id === dbProcess.process_id)
@@ -43,7 +50,7 @@ const approvalsManager = {
                 };
             });
 
-        return {
+        const mapped = {
             id: dbProcess.process_id,
             process_id: dbProcess.process_id,
             documentId: dbProcess.document_id,
@@ -56,6 +63,9 @@ const approvalsManager = {
             endDate: dbProcess.end_date,
             steps: steps
         };
+        
+        console.log('Процесс согласования замаплен:', mapped);
+        return mapped;
     },
 
     // Маппинг статуса процесса
@@ -118,26 +128,57 @@ const approvalsManager = {
 
     // Создать новое согласование
     async createApproval(documentId, steps) {
+        console.log('createApproval вызвана с documentId:', documentId, 'steps:', steps);
+        
         await this.init();
         const user = auth.getCurrentUser();
-        const document = await documentsManager.getDocumentById(documentId);
         
-        if (!document || !user) return null;
+        if (!user) {
+            console.error('Пользователь не авторизован');
+            return null;
+        }
+        
+        console.log('Текущий пользователь:', user);
+        
+        // Преобразуем documentId в число, если это строка
+        const docId = typeof documentId === 'string' ? parseInt(documentId) : documentId;
+        
+        const document = await documentsManager.getDocumentById(docId);
+        
+        console.log('Документ найден:', document);
+        
+        if (!document) {
+            console.error('Документ не найден с ID:', docId);
+            return null;
+        }
+        
+        if (!steps || steps.length === 0) {
+            console.error('Не указаны шаги согласования');
+            return null;
+        }
+
+        // Вычисляем deadline (5 дней от текущей даты)
+        const deadline = new Date();
+        deadline.setDate(deadline.getDate() + 5);
 
         // Создаем процесс согласования
+        console.log('Создание процесса согласования...');
         const newProcess = database.insert('approval_processes', {
-            document_id: documentId,
+            document_id: document.document_id || document.id || docId,
             name: `Согласование: ${document.name}`,
             status: 'in_progress',
-            initiator_id: user.user_id,
+            initiator_id: user.user_id || user.id,
             start_date: new Date().toISOString(),
-            deadline: this.calculateDeadline(5).toISOString(),
+            deadline: deadline.toISOString(),
             end_date: null
         });
+        
+        console.log('Процесс согласования создан:', newProcess);
 
         // Создаем шаги согласования
+        console.log('Создание шагов согласования...');
         steps.forEach((step, index) => {
-            database.insert('approval_steps', {
+            const stepData = {
                 process_id: newProcess.process_id,
                 step_number: index + 1,
                 assignee_id: step.approverId,
@@ -146,13 +187,21 @@ const approvalsManager = {
                 comment: '',
                 assigned_at: index === 0 ? new Date().toISOString() : null,
                 completed_at: null
-            });
+            };
+            console.log(`Создание шага ${index + 1}:`, stepData);
+            database.insert('approval_steps', stepData);
         });
 
         // Обновляем статус документа
-        await documentsManager.updateDocument(documentId, { status: 'review' });
+        console.log('Обновление статуса документа на review...');
+        await documentsManager.updateDocument(docId, { status: 'review' });
+        
+        // Синхронизируем данные
+        database.syncWithLocalStorage();
 
-        return this._mapApprovalFromDB(newProcess);
+        const mappedApproval = this._mapApprovalFromDB(newProcess);
+        console.log('Согласование создано и замаплено:', mappedApproval);
+        return mappedApproval;
     },
 
     // Согласовать шаг

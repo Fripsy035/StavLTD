@@ -2,7 +2,7 @@
 
 const modals = {
     // Создать модальное окно
-    create: function(id, title, content) {
+    create: function (id, title, content) {
         const modal = document.createElement('div');
         modal.className = 'modal';
         modal.id = id;
@@ -23,7 +23,7 @@ const modals = {
     },
 
     // Показать модальное окно
-    show: function(id) {
+    show: function (id) {
         const modal = document.getElementById(id);
         if (modal) {
             modal.classList.add('active');
@@ -32,7 +32,7 @@ const modals = {
     },
 
     // Скрыть модальное окно
-    hide: function(id) {
+    hide: function (id) {
         const modal = document.getElementById(id);
         if (modal) {
             modal.classList.remove('active');
@@ -41,13 +41,13 @@ const modals = {
     },
 
     // Инициализация обработчиков
-    init: function() {
+    init: function () {
         // Закрытие по клику на overlay (только для новых модальных окон)
         document.querySelectorAll('.modal-overlay').forEach(overlay => {
             // Проверяем, не установлен ли уже обработчик
             if (!overlay.hasAttribute('data-listener-attached')) {
                 overlay.setAttribute('data-listener-attached', 'true');
-                overlay.addEventListener('click', function() {
+                overlay.addEventListener('click', function () {
                     const modal = this.closest('.modal');
                     if (modal) {
                         modals.hide(modal.id);
@@ -60,17 +60,17 @@ const modals = {
         document.querySelectorAll('.modal-close').forEach(btn => {
             if (!btn.hasAttribute('data-listener-attached')) {
                 btn.setAttribute('data-listener-attached', 'true');
-                btn.addEventListener('click', function() {
+                btn.addEventListener('click', function () {
                     const modalId = this.getAttribute('data-modal');
                     modals.hide(modalId);
                 });
             }
         });
 
-        // Закрытие по Escape (устанавливаем один раз)
-        if (!document.hasAttribute('data-escape-listener')) {
-            document.setAttribute('data-escape-listener', 'true');
-            document.addEventListener('keydown', function(e) {
+        // Закрытие по Escape (устанавливаем один раз через window)
+        if (!window._escapeListenerAttached) {
+            window._escapeListenerAttached = true;
+            document.addEventListener('keydown', function (e) {
                 if (e.key === 'Escape') {
                     document.querySelectorAll('.modal.active').forEach(modal => {
                         modals.hide(modal.id);

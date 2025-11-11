@@ -187,6 +187,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="document-actions">
                     <button class="btn btn-download" data-doc-id="${doc.id}">Скачать</button>
                     <button class="btn btn-edit" data-doc-id="${doc.id}">Редактировать</button>
+                    ${doc.status === 'draft' ? `<button class="btn btn-primary btn-send-approval" data-doc-id="${doc.id}">Отправить на согласование</button>` : ''}
                     <button class="btn btn-danger" data-doc-id="${doc.id}" onclick="deleteDocument(${doc.id})">Удалить</button>
                 </div>
             </li>
@@ -199,38 +200,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function setupEventHandlers() {
         console.log('Установка обработчиков событий...');
         
-        // Находим кнопку и устанавливаем обработчик напрямую
-        const createBtn = document.querySelector('.btn-create');
-        if (createBtn) {
-            console.log('Кнопка создания найдена');
-            
-            // Удаляем все старые обработчики
-            const newBtn = createBtn.cloneNode(true);
-            createBtn.parentNode.replaceChild(newBtn, createBtn);
-            
-            newBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                
-                console.log('Кнопка создания документа нажата!');
-                
-                openCreateModal();
-            });
-            
-            console.log('Обработчик кнопки установлен');
-        } else {
-            console.error('Кнопка .btn-create не найдена в DOM');
-            // Используем делегирование как запасной вариант
-            document.addEventListener('click', function(e) {
-                if (e.target.classList.contains('btn-create') || e.target.closest('.btn-create')) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    console.log('Кнопка найдена через делегирование');
-                    openCreateModal();
-                }
-            });
-        }
-        
+        // Функция для открытия модального окна
         function openCreateModal() {
             console.log('Открытие модального окна создания документа...');
             
@@ -281,19 +251,45 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         }
-
-        // Форма документа (обработчик устанавливается в createDocumentModal)
-        // Дополнительная проверка на случай, если форма уже существует
-        const form = document.getElementById('documentForm');
-        if (form && !form.hasAttribute('data-submit-handler')) {
-            form.setAttribute('data-submit-handler', 'true');
-            form.addEventListener('submit', function(e) {
+        
+        // Находим кнопку и устанавливаем обработчик напрямую
+        const createBtn = document.querySelector('.btn-create');
+        if (createBtn) {
+            console.log('Кнопка создания найдена:', createBtn);
+            
+            // Удаляем все старые обработчики, клонируя элемент
+            const newBtn = createBtn.cloneNode(true);
+            createBtn.parentNode.replaceChild(newBtn, createBtn);
+            
+            // Устанавливаем новый обработчик
+            newBtn.addEventListener('click', function(e) {
                 e.preventDefault();
-                saveDocument();
+                e.stopPropagation();
+                
+                console.log('Кнопка создания документа нажата!');
+                
+                openCreateModal();
+            });
+            
+            console.log('Обработчик кнопки установлен');
+        } else {
+            console.error('Кнопка .btn-create не найдена в DOM');
+            
+            // Используем делегирование как запасной вариант
+            document.body.addEventListener('click', function(e) {
+                if (e.target.classList.contains('btn-create') || e.target.closest('.btn-create')) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Кнопка найдена через делегирование');
+                    openCreateModal();
+                }
             });
         }
-
-        // Редактирование документа
+        
+        // Сохраняем функции для использования в других местах
+        window.openCreateModal = openCreateModal;
+        
+        // Редактирование документа (делегирование событий)
         document.addEventListener('click', function(e) {
             if (e.target.classList.contains('btn-edit')) {
                 const docId = e.target.getAttribute('data-doc-id');
@@ -301,11 +297,19 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
-        // Скачивание документа
+        // Скачивание документа (делегирование событий)
         document.addEventListener('click', function(e) {
             if (e.target.classList.contains('btn-download')) {
                 const docId = e.target.getAttribute('data-doc-id');
                 downloadDocument(docId);
+            }
+        });
+        
+        // Отправка на согласование (делегирование событий)
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('btn-send-approval')) {
+                const docId = e.target.getAttribute('data-doc-id');
+                sendForApproval(docId);
             }
         });
     }
@@ -441,6 +445,336 @@ document.addEventListener('DOMContentLoaded', function() {
             await renderDocuments();
         }
     };
+
+    // Отправить документ на согласование
+    async function sendForApproval(docId) {
+        console.log('Отправка документа на согласование:', docId);
+        
+        // Проверяем, что approvalsManager доступен
+        if (typeof approvalsManager === 'undefined') {
+            alert('Ошибка: модуль согласований не загружен');
+            return;
+        }
+        
+        // Получаем список пользователей для выбора согласующих
+        console.log('Получение списка пользователей...');
+        const users = auth.getUsers();
+        console.log('Пользователи:', users);
+        
+        if (!users || users.length === 0) {
+            console.error('Не найдены пользователи');
+            alert('Не найдены пользователи для согласования');
+            return;
+        }
+        
+        // Создаем модальное окно для выбора согласующих
+        createApprovalModal(docId, users);
+    }
+
+    // Создать модальное окно для выбора согласующих
+    function createApprovalModal(docId, users) {
+        // Проверяем, не создано ли уже модальное окно
+        const existingModal = document.getElementById('approvalModal');
+        if (existingModal) {
+            existingModal.remove();
+        }
+        
+        // Создаем список пользователей (исключаем текущего пользователя)
+        const currentUser = auth.getCurrentUser();
+        const approversList = users
+            .filter(u => u.user_id !== currentUser.user_id)
+            .map(user => `
+                <div class="approver-item">
+                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 10px; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 10px;">
+                        <input type="checkbox" class="approver-checkbox" value="${user.user_id}" data-user-name="${user.fullName}">
+                        <span>${user.fullName} (${user.position || user.role})</span>
+                    </label>
+                </div>
+            `).join('');
+        
+        const modalContent = `
+            <form id="approvalForm">
+                <div class="form-group">
+                    <label class="form-label">Выберите согласующих (можно выбрать несколько):</label>
+                    <div id="approversList" style="max-height: 300px; overflow-y: auto; margin-top: 10px;">
+                        ${approversList || '<p>Нет доступных согласующих</p>'}
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="approvalComment">Комментарий (необязательно):</label>
+                    <textarea class="form-control" id="approvalComment" name="comment" rows="3" placeholder="Добавьте комментарий к отправке на согласование"></textarea>
+                </div>
+                <input type="hidden" id="approvalDocId" value="${docId}">
+                <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+                    <button type="button" class="btn btn-secondary" id="cancelApprovalBtn" style="cursor: pointer;">Отмена</button>
+                    <button type="button" class="btn btn-primary" id="submitApprovalBtn" style="cursor: pointer;">Отправить на согласование</button>
+                </div>
+            </form>
+        `;
+        
+        if (typeof modals !== 'undefined' && modals.create) {
+            try {
+                modals.create('approvalModal', 'Отправить на согласование', modalContent);
+                console.log('Модальное окно согласования создано');
+                
+                // Устанавливаем обработчики с задержкой, чтобы убедиться, что DOM готов
+                setTimeout(() => {
+                    console.log('Настройка обработчиков для модального окна согласования...');
+                    
+                    const modalElement = document.getElementById('approvalModal');
+                    const form = document.getElementById('approvalForm');
+                    const submitBtn = document.getElementById('submitApprovalBtn');
+                    const cancelBtn = document.getElementById('cancelApprovalBtn');
+                    const docIdField = document.getElementById('approvalDocId');
+                    
+                    console.log('Элементы найдены:', {
+                        modal: !!modalElement,
+                        form: !!form,
+                        submitBtn: !!submitBtn,
+                        cancelBtn: !!cancelBtn,
+                        docIdField: !!docIdField
+                    });
+                    
+                    if (!modalElement) {
+                        console.error('Модальное окно approvalModal не найдено');
+                        return;
+                    }
+                    
+                    if (!form) {
+                        console.error('Форма approvalForm не найдена');
+                        return;
+                    }
+                    
+                    // Обработчик на форму (submit)
+                    form.addEventListener('submit', async function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log('=== ФОРМА ОТПРАВЛЕНА (submit event) ===');
+                        
+                        const currentDocId = docIdField ? docIdField.value : docId;
+                        console.log('Используемый docId:', currentDocId);
+                        
+                        await submitApproval(currentDocId);
+                        return false;
+                    });
+                    
+                    // Обработчик на кнопку отправки (click) - используем once: false для возможности многократных кликов
+                    if (submitBtn) {
+                        // Удаляем все предыдущие обработчики
+                        const newSubmitBtn = submitBtn.cloneNode(true);
+                        submitBtn.parentNode.replaceChild(newSubmitBtn, submitBtn);
+                        
+                        // Устанавливаем новый обработчик
+                        newSubmitBtn.addEventListener('click', async function(e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            e.stopImmediatePropagation();
+                            
+                            console.log('=== КНОПКА ОТПРАВКИ НАЖАТА (click event) ===');
+                            console.log('Событие:', e);
+                            console.log('Цель:', e.target);
+                            
+                            const currentDocIdField = document.getElementById('approvalDocId');
+                            const currentDocId = currentDocIdField ? currentDocIdField.value : docId;
+                            console.log('Используемый docId:', currentDocId);
+                            
+                            try {
+                                await submitApproval(currentDocId);
+                            } catch (error) {
+                                console.error('Ошибка в submitApproval:', error);
+                                alert('Ошибка: ' + error.message);
+                            }
+                            
+                            return false;
+                        }, { capture: true });
+                        
+                        // Также добавляем onclick для надежности
+                        newSubmitBtn.setAttribute('onclick', `
+                            event.preventDefault();
+                            event.stopPropagation();
+                            console.log('Onclick сработал');
+                            const docIdField = document.getElementById('approvalDocId');
+                            const docId = docIdField ? docIdField.value : '${docId}';
+                            if (window.submitApproval) {
+                                window.submitApproval(docId);
+                            }
+                            return false;
+                        `);
+                        
+                        console.log('Обработчик на кнопку отправки установлен');
+                    } else {
+                        console.error('Кнопка submitApprovalBtn не найдена!');
+                    }
+                    
+                    // Обработчик на кнопку отмены
+                    if (cancelBtn) {
+                        cancelBtn.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            console.log('Отмена отправки на согласование');
+                            if (typeof modals !== 'undefined' && modals.hide) {
+                                modals.hide('approvalModal');
+                            } else {
+                                const modal = document.getElementById('approvalModal');
+                                if (modal) {
+                                    modal.classList.remove('active');
+                                    document.body.style.overflow = '';
+                                }
+                            }
+                            return false;
+                        });
+                        console.log('Обработчик на кнопку отмены установлен');
+                    }
+                    
+                    // Делегирование на уровне модального окна (резервный вариант)
+                    modalElement.addEventListener('click', function(e) {
+                        // Проверяем, что клик был по кнопке отправки или её дочерним элементам
+                        if (e.target && (e.target.id === 'submitApprovalBtn' || e.target.closest && e.target.closest('#submitApprovalBtn'))) {
+                            console.log('Клик по кнопке отправки через делегирование');
+                        }
+                        // Проверяем, что клик был по кнопке отмены
+                        if (e.target && (e.target.id === 'cancelApprovalBtn' || e.target.closest && e.target.closest('#cancelApprovalBtn'))) {
+                            console.log('Клик по кнопке отмены через делегирование');
+                        }
+                    });
+                    
+                    console.log('Все обработчики успешно установлены');
+                }, 300);
+            } catch (error) {
+                console.error('Ошибка при создании модального окна согласования:', error);
+            }
+        } else {
+            console.error('Модуль modals не загружен');
+        }
+    }
+
+    // Делаем функцию доступной глобально для тестирования
+    window.submitApproval = async function(docId) {
+        return await submitApprovalInternal(docId);
+    };
+    
+    // Отправить на согласование
+    async function submitApproval(docId) {
+        return await submitApprovalInternal(docId);
+    }
+    
+    async function submitApprovalInternal(docId) {
+        console.log('=== НАЧАЛО ОТПРАВКИ НА СОГЛАСОВАНИЕ ===');
+        console.log('ID документа:', docId);
+        console.log('Тип ID:', typeof docId);
+        
+        try {
+            // Проверяем доступность модулей ПЕРЕД всем остальным
+            if (typeof approvalsManager === 'undefined') {
+                console.error('Модуль approvalsManager не загружен');
+                throw new Error('Модуль approvalsManager не загружен');
+            }
+            console.log('✓ approvalsManager доступен');
+            
+            if (typeof documentsManager === 'undefined') {
+                console.error('Модуль documentsManager не загружен');
+                throw new Error('Модуль documentsManager не загружен');
+            }
+            console.log('✓ documentsManager доступен');
+            
+            if (typeof database === 'undefined') {
+                console.error('Модуль database не загружен');
+                throw new Error('Модуль database не загружен');
+            }
+            console.log('✓ database доступен');
+            
+            // Получаем выбранные согласующие
+            const checkboxes = document.querySelectorAll('.approver-checkbox:checked');
+            console.log('Найдено выбранных согласующих:', checkboxes.length);
+            
+            if (checkboxes.length === 0) {
+                alert('Выберите хотя бы одного согласующего');
+                return;
+            }
+            
+            const steps = Array.from(checkboxes).map((cb, index) => {
+                const approverId = parseInt(cb.value);
+                const approverName = cb.getAttribute('data-user-name');
+                console.log(`Согласующий ${index + 1}: ${approverName} (ID: ${approverId})`);
+                return {
+                    approverId: approverId,
+                    approverName: approverName
+                };
+            });
+            
+            console.log('Шаги согласования:', JSON.stringify(steps, null, 2));
+            
+            const comment = document.getElementById('approvalComment')?.value || '';
+            console.log('Комментарий:', comment);
+            
+            // Преобразуем docId в число, если нужно
+            const numericDocId = typeof docId === 'string' ? parseInt(docId) : docId;
+            console.log('Числовой ID документа:', numericDocId);
+            
+            // Проверяем, что документ существует
+            console.log('Получение документа из БД...');
+            const doc = await documentsManager.getDocumentById(numericDocId);
+            console.log('Документ получен:', doc);
+            
+            if (!doc) {
+                console.error('Документ не найден с ID:', numericDocId);
+                throw new Error('Документ не найден');
+            }
+            
+            console.log('Документ найден:', doc.name, 'Статус:', doc.status);
+            
+            // Создаем процесс согласования
+            console.log('Вызов approvalsManager.createApproval...');
+            console.log('Параметры:', {
+                documentId: numericDocId,
+                steps: steps
+            });
+            
+            const approval = await approvalsManager.createApproval(numericDocId, steps);
+            
+            console.log('Результат createApproval:', approval);
+            
+            if (approval) {
+                console.log('✓✓✓ ПРОЦЕСС СОГЛАСОВАНИЯ УСПЕШНО СОЗДАН ✓✓✓');
+                console.log('Детали:', JSON.stringify(approval, null, 2));
+                
+                // Закрываем модальное окно
+                console.log('Закрытие модального окна...');
+                if (typeof modals !== 'undefined' && modals.hide) {
+                    modals.hide('approvalModal');
+                } else {
+                    const modal = document.getElementById('approvalModal');
+                    if (modal) {
+                        modal.classList.remove('active');
+                        document.body.style.overflow = '';
+                    }
+                }
+                
+                // Небольшая задержка для синхронизации
+                console.log('Ожидание синхронизации данных...');
+                await new Promise(resolve => setTimeout(resolve, 300));
+                
+                // Обновляем список документов
+                console.log('Обновление списка документов...');
+                await renderDocuments(currentFilters);
+                await updateFilterCounts();
+                
+                console.log('=== УСПЕШНОЕ ЗАВЕРШЕНИЕ ===');
+                alert('Документ успешно отправлен на согласование!');
+            } else {
+                console.error('✗✗✗ createApproval вернула null ✗✗✗');
+                console.error('Это означает, что процесс согласования не был создан');
+                alert('Ошибка: не удалось создать процесс согласования. Проверьте консоль браузера для деталей.');
+            }
+        } catch (error) {
+            console.error('✗✗✗ КРИТИЧЕСКАЯ ОШИБКА ✗✗✗');
+            console.error('Ошибка:', error);
+            console.error('Тип ошибки:', error.constructor.name);
+            console.error('Сообщение:', error.message);
+            console.error('Стек ошибки:', error.stack);
+            alert('Ошибка при отправке на согласование: ' + (error.message || error));
+        }
+    }
 
     function setupSearch() {
         const searchInput = document.querySelector('.search-input');

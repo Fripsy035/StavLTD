@@ -180,11 +180,20 @@ const documentsManager = {
         }
 
         // Обновляем документ
-        const updated = database.update('documents', parseInt(id), {
+        const updateData = {
             name: documentData.name || dbDoc.name,
             category_id: categoryId,
             updated_at: new Date().toISOString()
-        });
+        };
+        
+        // Если передан статус, обновляем его
+        if (documentData.status) {
+            updateData.status = documentData.status;
+        }
+        
+        console.log('Обновление документа с ID:', id, 'данные:', updateData);
+        const updated = database.update('documents', parseInt(id), updateData);
+        console.log('Документ обновлен:', updated);
 
         // Создаем новую версию если есть изменения
         if (documentData.fileUrl || documentData.description) {

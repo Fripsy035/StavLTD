@@ -71,7 +71,17 @@ const database = {
     // Инициализация - загрузить данные
     async init() {
         if (!this._data) {
-            await this.load();
+            // Сначала пытаемся загрузить из кэша
+            if (this.syncWithLocalStorage()) {
+                console.log('Данные загружены из localStorage кэша');
+            } else {
+                // Если кэша нет, загружаем из файла
+                await this.load();
+                // Сохраняем в кэш
+                if (this._data) {
+                    localStorage.setItem('database_cache', JSON.stringify(this._data));
+                }
+            }
         }
         return this._data;
     },
@@ -217,10 +227,20 @@ const database = {
 
 // Инициализация при загрузке
 document.addEventListener('DOMContentLoaded', async function() {
-    // Сначала пытаемся загрузить из localStorage (кэш)
-    if (!database.syncWithLocalStorage()) {
-        // Если кэша нет, загружаем из файла
-        await database.init();
+    try {
+        // Пытаемся загрузить из localStorage (кэш)
+        if (!database.syncWithLocalStorage()) {
+            // Если кэша нет, загружаем из файла
+            console.log('Загрузка данных из JSON файла...');
+            await database.load();
+            // Сохраняем в кэш
+            if (database._data) {
+                localStorage.setItem('database_cache', JSON.stringify(database._data));
+                console.log('Данные из JSON файла сохранены в кэш');
+            }
+        }
+    } catch (error) {
+        console.error('Ошибка инициализации базы данных:', error);
     }
 });
 
