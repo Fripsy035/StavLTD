@@ -33,16 +33,63 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     async function initApprovalsPage() {
+        // Проверяем роль пользователя
+        const user = auth.getCurrentUser();
+        const isRegularUser = user && user.role === 'Пользователь';
+        
+        // Скрываем вкладку "Мои согласования" для обычных пользователей
+        if (isRegularUser) {
+            const myApprovalsTab = document.querySelector('.tab[data-tab="my-approvals"]');
+            if (myApprovalsTab) {
+                myApprovalsTab.style.display = 'none';
+            }
+            // Активируем вкладку "Инициированные мной" или "Завершенные"
+            const initiatedTab = document.querySelector('.tab[data-tab="initiated"]');
+            if (initiatedTab) {
+                initiatedTab.classList.add('active');
+                document.querySelector('.tab[data-tab="my-approvals"]').classList.remove('active');
+                document.getElementById('my-approvals').classList.remove('active');
+                document.getElementById('initiated').classList.add('active');
+            }
+        }
+        
+        // Настройка табов
+        setupTabs();
+        
         await renderApprovals();
         setupEventHandlers();
+    }
+    
+    function setupTabs() {
+        const tabs = document.querySelectorAll('.tabs .tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                tabs.forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+
+                const targetTab = this.dataset.tab;
+                tabContents.forEach(content => {
+                    content.classList.toggle('active', content.id === targetTab);
+                });
+            });
+        });
     }
 
     async function renderApprovals() {
         const user = auth.getCurrentUser();
+        console.log('Текущий пользователь для отображения согласований:', user);
+        const isRegularUser = user && user.role === 'Пользователь';
+        
+        console.log('Получение моих согласований...');
         const myApprovals = await approvalsManager.getMyApprovals();
+        console.log('Мои согласования получены:', myApprovals);
+        console.log('Количество моих согласований:', myApprovals.length);
+        
         const container = document.querySelector('#my-approvals .approval-grid');
         
-        if (container) {
+        if (container && !isRegularUser) {
             if (myApprovals.length === 0) {
                 container.innerHTML = '<p style="text-align: center; padding: 20px;">Нет задач согласования</p>';
             } else {
@@ -92,8 +139,10 @@ document.addEventListener('DOMContentLoaded', function() {
                                 }).join('')}
                             </div>
                             <div class="approval-actions">
-                                <button class="btn btn-approve" data-approval-id="${approval.id}" data-step-id="${currentStep.id}">Согласовать</button>
-                                <button class="btn btn-reject" data-approval-id="${approval.id}" data-step-id="${currentStep.id}">Отклонить</button>
+                                ${isRegularUser ? '' : `
+                                    <button class="btn btn-approve" data-approval-id="${approval.id}" data-step-id="${currentStep.id}">Согласовать</button>
+                                    <button class="btn btn-reject" data-approval-id="${approval.id}" data-step-id="${currentStep.id}">Отклонить</button>
+                                `}
                                 <button class="btn btn-view" data-doc-id="${approval.documentId}">Просмотреть</button>
                             </div>
                         </div>
@@ -103,8 +152,19 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // Инициированные мной
+        console.log('Получение всех согласований...');
         const allApprovals = await approvalsManager.getAllApprovals();
-        const initiated = allApprovals.filter(a => a.initiatorId === user.user_id);
+        console.log('Все согласования получены:', allApprovals);
+        console.log('Количество всех согласований:', allApprovals.length);
+        console.log('ID текущего пользователя:', user.user_id);
+        
+        const initiated = allApprovals.filter(a => {
+            console.log('Проверка согласования:', a.id, 'initiatorId:', a.initiatorId, 'user_id:', user.user_id, 'совпадение:', a.initiatorId === user.user_id);
+            return a.initiatorId === user.user_id;
+        });
+        console.log('Инициированные мной согласования:', initiated);
+        console.log('Количество инициированных:', initiated.length);
+        
         const initiatedContainer = document.querySelector('#initiated .approval-grid');
         
         if (initiatedContainer) {
@@ -141,6 +201,103 @@ document.addEventListener('DOMContentLoaded', function() {
                 }).join('');
             }
         }
+        
+        // Завершенные согласования
+        const completed = allApprovals.filter(a => a.status === 'completed' || a.status === 'rejected');
+        const completedContainer = document.querySelector('#completed .approval-grid');
+        
+        if (completedContainer) {
+            console.log('Завершенные согласования:', completed);
+            if (completed.length === 0) {
+                completedContainer.innerHTML = '<p style="text-align: center; padding: 20px;">Нет завершенных согласований</p>';
+            } else {
+                completedContainer.innerHTML = completed.map(approval => {
+                    const completedSteps = approval.steps.filter(s => s.status === 'approved').length;
+                    const totalSteps = approval.steps.length;
+                    const progress = (completedSteps / totalSteps) * 100;
+                    const isRejected = approval.status === 'rejected';
+
+                    return `
+                        <div class="approval-card ${isRejected ? 'urgent' : 'completed'}" data-approval-id="${approval.id}">
+                            <div class="approval-header">
+                                <div>
+                                    <div class="approval-title">${approval.documentName}</div>
+                                    <div class="approval-meta">Создан: ${approvalsManager.formatDate(approval.createdAt)} | ${isRejected ? 'Отклонен' : 'Завершен'}: ${approvalsManager.formatDate(approval.endDate || approval.createdAt)}</div>
+                                </div>
+                                <div class="approval-status ${isRejected ? 'status-pending' : 'status-approved'}">${isRejected ? 'Отклонен' : 'Завершен'}</div>
+                            </div>
+                            <div class="approval-progress">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: ${progress}%"></div>
+                                </div>
+                                <div class="progress-text">${isRejected ? 'Согласование отклонено' : completedSteps + ' из ' + totalSteps + ' этапов завершено'}</div>
+                            </div>
+                            <div class="approval-actions">
+                                <button class="btn btn-view" data-doc-id="${approval.documentId}">Просмотреть</button>
+                                ${!isRejected ? '<button class="btn btn-download" data-doc-id="' + approval.documentId + '">Скачать</button>' : ''}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+        }
+        
+        // Завершенные согласования
+        const completed = allApprovals.filter(a => a.status === 'completed' || a.status === 'rejected');
+        const completedContainer = document.querySelector('#completed .approval-grid');
+        
+        if (completedContainer) {
+            console.log('Завершенные согласования:', completed);
+            if (completed.length === 0) {
+                completedContainer.innerHTML = '<p style="text-align: center; padding: 20px;">Нет завершенных согласований</p>';
+            } else {
+                completedContainer.innerHTML = completed.map(approval => {
+                    const completedSteps = approval.steps.filter(s => s.status === 'approved').length;
+                    const totalSteps = approval.steps.length;
+                    const progress = (completedSteps / totalSteps) * 100;
+                    const isRejected = approval.status === 'rejected';
+
+                    return `
+                        <div class="approval-card ${isRejected ? 'urgent' : 'completed'}" data-approval-id="${approval.id}">
+                            <div class="approval-header">
+                                <div>
+                                    <div class="approval-title">${approval.documentName}</div>
+                                    <div class="approval-meta">Создан: ${approvalsManager.formatDate(approval.createdAt)} | ${isRejected ? 'Отклонен' : 'Завершен'}: ${approvalsManager.formatDate(approval.endDate || approval.createdAt)}</div>
+                                </div>
+                                <div class="approval-status ${isRejected ? 'status-pending' : 'status-approved'}">${isRejected ? 'Отклонен' : 'Завершен'}</div>
+                            </div>
+                            <div class="approval-progress">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: ${progress}%"></div>
+                                </div>
+                                <div class="progress-text">${isRejected ? 'Согласование отклонено' : completedSteps + ' из ' + totalSteps + ' этапов завершено'}</div>
+                            </div>
+                            <div class="approval-actions">
+                                <button class="btn btn-view" data-doc-id="${approval.documentId}">Просмотреть</button>
+                                ${!isRejected ? '<button class="btn btn-download" data-doc-id="' + approval.documentId + '">Скачать</button>' : ''}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+        }
+    }
+    
+    function setupTabs() {
+        const tabs = document.querySelectorAll('.tabs .tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                tabs.forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+
+                const targetTab = this.dataset.tab;
+                tabContents.forEach(content => {
+                    content.classList.toggle('active', content.id === targetTab);
+                });
+            });
+        });
     }
 
     function setupEventHandlers() {

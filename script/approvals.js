@@ -38,7 +38,7 @@ const approvalsManager = {
             .sort((a, b) => a.step_number - b.step_number)
             .map(step => {
                 const assignee = database.find('users', u => u.user_id === step.assignee_id);
-                return {
+                const mappedStep = {
                     id: step.step_id,
                     step_id: step.step_id,
                     step_number: step.step_number,
@@ -48,6 +48,8 @@ const approvalsManager = {
                     approvedAt: step.completed_at,
                     comment: step.comment || ''
                 };
+                console.log('Маппинг шага:', step, '->', mappedStep);
+                return mappedStep;
             });
 
         const mapped = {
@@ -116,14 +118,29 @@ const approvalsManager = {
     async getMyApprovals() {
         await this.init();
         const user = auth.getCurrentUser();
-        if (!user) return [];
+        if (!user) {
+            console.log('getMyApprovals: пользователь не авторизован');
+            return [];
+        }
 
+        console.log('getMyApprovals: текущий пользователь:', user);
+        console.log('getMyApprovals: user_id:', user.user_id);
+        
         const allProcesses = await this.getAllApprovals();
-        return allProcesses.filter(approval => {
+        console.log('getMyApprovals: все процессы:', allProcesses);
+        
+        const filtered = allProcesses.filter(approval => {
             // Находим текущий шаг согласования
             const currentStep = approval.steps.find(step => step.status === 'pending');
+            console.log('getMyApprovals: проверка согласования', approval.id, 'текущий шаг:', currentStep);
+            if (currentStep) {
+                console.log('getMyApprovals: approverId:', currentStep.approverId, 'user_id:', user.user_id, 'совпадение:', currentStep.approverId === user.user_id);
+            }
             return currentStep && currentStep.approverId === user.user_id;
         });
+        
+        console.log('getMyApprovals: отфильтрованные согласования:', filtered);
+        return filtered;
     },
 
     // Создать новое согласование

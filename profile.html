@@ -17,10 +17,10 @@
                 </div>
 
                 <div class="user-info">
-                    <div class="user-avatar" id="userAvatar">ИИ</div>
+                    <div class="user-avatar" id="userAvatar"></div>
                     <div>
-                        <div class="user-name" id="userName">Иванов Иван</div>
-                        <div class="user-role" id="userRole">Администратор</div>
+                        <div class="user-name" id="userName"></div>
+                        <div class="user-role" id="userRole"></div>
                     </div>
                     <button class="logout-btn">Выйти</button>
                 </div>
@@ -50,11 +50,11 @@
 
                 <div class="profile-container">
                     <div class="profile-header">
-                        <div class="profile-avatar-large" id="profileAvatar">ИИ</div>
+                        <div class="profile-avatar-large" id="profileAvatar"></div>
                         <div class="profile-info">
-                            <h3 id="profileName">Иванов Иван</h3>
-                            <p id="profileEmail">i.ivanov@stav-ltd.ru</p>
-                            <p id="profileRole">Администратор</p>
+                            <h3 id="profileName"></h3>
+                            <p id="profileEmail"></p>
+                            <p id="profileRole"></p>
                         </div>
                     </div>
 
@@ -87,12 +87,14 @@
 
                                 <div class="form-group">
                                     <label class="form-label" for="department">Отдел</label>
-                                    <input type="text" class="form-control" id="department" name="department">
+                                    <input type="text" class="form-control" id="department" name="department" readonly disabled>
+                                    <div class="form-text">Отдел можно изменить только через настройки (только для администратора)</div>
                                 </div>
 
                                 <div class="form-group">
                                     <label class="form-label" for="position">Должность</label>
-                                    <input type="text" class="form-control" id="position" name="position">
+                                    <input type="text" class="form-control" id="position" name="position" readonly disabled>
+                                    <div class="form-text">Должность можно изменить только через настройки (только для администратора)</div>
                                 </div>
 
                                 <button type="submit" class="btn btn-primary">Сохранить изменения</button>
@@ -179,22 +181,48 @@
     <script src="script/database.js"></script>
     <script src="script/script.js"></script>
     <script src="script/auth.js"></script>
+    <script src="script/user-info.js"></script>
+    <script src="script/access-control.js"></script>
     <script>
         // Загрузка данных пользователя
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Ждем загрузки модулей
+            if (typeof database === 'undefined' || typeof auth === 'undefined') {
+                await new Promise(resolve => {
+                    const checkModules = setInterval(() => {
+                        if (typeof database !== 'undefined' && typeof auth !== 'undefined') {
+                            clearInterval(checkModules);
+                            resolve();
+                        }
+                    }, 100);
+                    setTimeout(() => {
+                        clearInterval(checkModules);
+                        resolve();
+                    }, 5000);
+                });
+            }
+
+            await database.init();
             const user = auth.getCurrentUser();
+            
             if (user) {
                 // Обновление информации в профиле
-                document.getElementById('profileName').textContent = user.fullName || user.name;
-                document.getElementById('profileEmail').textContent = user.email;
+                const fullName = user.fullName || user.name || 'Пользователь';
+                document.getElementById('profileName').textContent = fullName;
+                document.getElementById('profileEmail').textContent = user.email || '';
                 document.getElementById('profileRole').textContent = user.role || 'Пользователь';
                 
                 // Обновление аватара
-                const initials = auth.getInitials(user.fullName || user.name);
+                const initials = auth.getInitials(fullName);
                 document.getElementById('profileAvatar').textContent = initials;
                 
+                // Обновление в header
+                document.getElementById('userName').textContent = fullName;
+                document.getElementById('userRole').textContent = user.role || 'Пользователь';
+                document.getElementById('userAvatar').textContent = initials;
+                
                 // Заполнение формы
-                document.getElementById('fullName').value = user.fullName || user.name || '';
+                document.getElementById('fullName').value = fullName;
                 document.getElementById('email').value = user.email || '';
                 document.getElementById('phone').value = user.phone || '';
                 document.getElementById('department').value = user.department || '';
@@ -205,34 +233,90 @@
             }
         });
 
+        // Валидация номера телефона
+        function validatePhone(phone) {
+            if (!phone) return true; // Телефон не обязателен в профиле
+            // Удаляем все пробелы, скобки, дефисы и плюсы для проверки
+            const cleaned = phone.replace(/[\s\-\(\)\+]/g, '');
+            // Проверяем, что осталось только цифры и длина от 10 до 11 цифр
+            // Форматы: +7 (999) 123-45-67, 89991234567, +79991234567
+            const phoneRegex = /^(\+?7|8)?\d{10}$/;
+            return phoneRegex.test(cleaned);
+        }
+
         // Обработка формы личных данных
-        document.getElementById('personalForm').addEventListener('submit', function(e) {
+        document.getElementById('personalForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             const user = auth.getCurrentUser();
             if (user) {
+                const fullName = document.getElementById('fullName').value.trim();
+                const email = document.getElementById('email').value.trim();
+                const phone = document.getElementById('phone').value.trim();
+                
+                // Валидация
+                if (!fullName || !email) {
+                    alert('Пожалуйста, заполните все обязательные поля (ФИО, Email)');
+                    return;
+                }
+
+                // Валидация телефона (если указан)
+                if (phone && !validatePhone(phone)) {
+                    alert('Неверный формат номера телефона. Используйте формат: +7 (999) 123-45-67 или 89991234567');
+                    return;
+                }
+
+                // Не сохраняем отдел и должность - они изменяются только администратором
                 const updatedUser = {
                     ...user,
-                    fullName: document.getElementById('fullName').value,
-                    email: document.getElementById('email').value,
-                    phone: document.getElementById('phone').value,
-                    department: document.getElementById('department').value,
-                    position: document.getElementById('position').value
+                    fullName: fullName,
+                    email: email,
+                    phone: phone
+                    // department и position не обновляем - они только для чтения
                 };
-                auth.updateUser(updatedUser);
                 
-                // Обновление отображения
-                document.getElementById('profileName').textContent = updatedUser.fullName;
-                document.getElementById('profileEmail').textContent = updatedUser.email;
-                const initials = auth.getInitials(updatedUser.fullName);
-                document.getElementById('profileAvatar').textContent = initials;
+                const result = await auth.updateUser(updatedUser);
                 
-                // Обновление в header
-                document.getElementById('userName').textContent = updatedUser.fullName;
-                const headerInitials = auth.getInitials(updatedUser.fullName);
-                document.getElementById('userAvatar').textContent = headerInitials;
-                
-                alert('Данные успешно сохранены!');
+                if (result) {
+                    // Обновление отображения
+                    document.getElementById('profileName').textContent = updatedUser.fullName;
+                    document.getElementById('profileEmail').textContent = updatedUser.email;
+                    const initials = auth.getInitials(updatedUser.fullName);
+                    document.getElementById('profileAvatar').textContent = initials;
+                    
+                    // Обновление в header
+                    document.getElementById('userName').textContent = updatedUser.fullName;
+                    const headerInitials = auth.getInitials(updatedUser.fullName);
+                    document.getElementById('userAvatar').textContent = headerInitials;
+                    
+                    alert('Данные успешно сохранены!');
+                } else {
+                    alert('Ошибка при сохранении данных');
+                }
             }
+        });
+
+        // Обработка табов в профиле
+        const tabs = document.querySelectorAll('.profile-tabs .tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                // Убираем активный класс у всех табов
+                tabs.forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+
+                // Скрываем все содержимое табов
+                tabContents.forEach(content => {
+                    content.classList.remove('active');
+                });
+
+                // Показываем выбранный таб
+                const targetTab = this.getAttribute('data-tab');
+                const targetContent = document.getElementById(targetTab);
+                if (targetContent) {
+                    targetContent.classList.add('active');
+                }
+            });
         });
 
         // Обработка формы смены пароля

@@ -47,6 +47,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function renderTasks() {
         const user = auth.getCurrentUser();
+        const isRegularUser = user && user.role === 'Пользователь';
+        
+        // Скрываем секцию задач для обычных пользователей
+        if (isRegularUser) {
+            const tasksSection = document.querySelector('.dashboard-section');
+            const tasksHeader = tasksSection ? tasksSection.querySelector('h2.section-title') : null;
+            if (tasksHeader && tasksHeader.textContent.includes('задачи согласования')) {
+                tasksSection.style.display = 'none';
+            }
+            return;
+        }
+        
         const myApprovals = await approvalsManager.getMyApprovals();
         const container = document.querySelector('.task-list');
         
@@ -100,7 +112,20 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (!container) return;
 
-        container.innerHTML = recent.map(doc => `
+        // Проверяем роль пользователя
+        const user = auth.getCurrentUser();
+        const isRegularUser = user && user.role === 'Пользователь';
+
+        container.innerHTML = recent.map(doc => {
+            // Для обычных пользователей показываем только кнопку "Скачать"
+            const actions = isRegularUser 
+                ? `<button class="btn btn-download" data-doc-id="${doc.id}">Скачать</button>`
+                : `
+                    <button class="btn btn-download" data-doc-id="${doc.id}">Скачать</button>
+                    <button class="btn btn-edit" data-doc-id="${doc.id}">Редактировать</button>
+                `;
+            
+            return `
             <li class="document-item" data-doc-id="${doc.id}">
                 <div class="document-details">
                     <div class="document-name">${doc.name}</div>
@@ -111,11 +136,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                 </div>
                 <div class="document-actions">
-                    <button class="btn btn-download" data-doc-id="${doc.id}">Скачать</button>
-                    <button class="btn btn-edit" data-doc-id="${doc.id}">Редактировать</button>
+                    ${actions}
                 </div>
             </li>
-        `).join('');
+        `;
+        }).join('');
 
         // Обработчики действий
         container.querySelectorAll('.btn-download').forEach(btn => {
@@ -130,11 +155,15 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
 
-        container.querySelectorAll('.btn-edit').forEach(btn => {
-            btn.addEventListener('click', function() {
-                window.location.href = 'documents.html';
+        // Обработчик редактирования только для не-обычных пользователей
+        if (!isRegularUser) {
+            container.querySelectorAll('.btn-edit').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const docId = this.getAttribute('data-doc-id');
+                    window.location.href = `documents.html?edit=${docId}`;
+                });
             });
-        });
+        }
     }
 
     function setupSidebarFilters() {

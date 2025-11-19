@@ -48,6 +48,7 @@ const auth = {
             name: dbUser.full_name,
             role: this._mapRole(dbUser.role),
             position: dbUser.position || '',
+            phone: dbUser.phone || '',
             department: department ? department.name : '',
             department_id: dbUser.department_id,
             is_active: dbUser.is_active !== false
@@ -73,9 +74,13 @@ const auth = {
         // В реальном приложении пароль должен быть хеширован
         // Для демонстрации используем простую проверку
         // Пароли хранятся в отдельной таблице или в зашифрованном виде
-        // Здесь для простоты проверяем по email (в продакшене нужна проверка пароля)
         
         if (dbUser) {
+            // Проверяем пароль, если он указан в базе данных
+            if (dbUser.password && dbUser.password !== password) {
+                console.error('Неверный пароль для email:', email);
+                return { success: false, message: 'Неверный email или пароль' };
+            }
             const user = this._mapUserFromDB(dbUser);
             
             console.log('Пользователь найден в БД:', dbUser);
@@ -123,12 +128,25 @@ const auth = {
     // Обновление данных пользователя
     updateUser: async function(updatedUser) {
         await this.init();
-        const dbUser = database.update('users', updatedUser.user_id, {
+        const updates = {
             full_name: updatedUser.fullName,
-            email: updatedUser.email,
-            position: updatedUser.position || '',
-            department_id: updatedUser.department_id || null
-        });
+            email: updatedUser.email
+        };
+        
+        // Обновляем телефон, если он указан
+        if (updatedUser.phone !== undefined) {
+            updates.phone = updatedUser.phone || '';
+        }
+        
+        // Обновляем должность и отдел только если они указаны (для администратора)
+        if (updatedUser.position !== undefined) {
+            updates.position = updatedUser.position || '';
+        }
+        if (updatedUser.department_id !== undefined) {
+            updates.department_id = updatedUser.department_id || null;
+        }
+        
+        const dbUser = database.update('users', updatedUser.user_id, updates);
         
         if (dbUser) {
             // Обновляем текущего пользователя
@@ -140,6 +158,7 @@ const auth = {
                 name: user.name,
                 role: user.role,
                 position: user.position,
+                phone: user.phone,
                 department: user.department,
                 department_id: user.department_id
             }));
