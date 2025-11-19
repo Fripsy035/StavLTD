@@ -60,19 +60,19 @@
                 <!-- Быстрая статистика -->
                 <div class="quick-stats">
                     <div class="stat-card">
-                        <div class="value">142</div>
+                        <div class="value" id="reportsStatTotalDocs">0</div>
                         <div class="label">Всего документов</div>
                     </div>
                     <div class="stat-card">
-                        <div class="value">15</div>
+                        <div class="value" id="reportsStatReview">0</div>
                         <div class="label">На согласовании</div>
                     </div>
                     <div class="stat-card">
-                        <div class="value">87</div>
+                        <div class="value" id="reportsStatApproved">0</div>
                         <div class="label">Согласовано</div>
                     </div>
                     <div class="stat-card">
-                        <div class="value">23</div>
+                        <div class="value" id="reportsStatOverdue">0</div>
                         <div class="label">Просрочено</div>
                     </div>
                 </div>
@@ -96,15 +96,15 @@
                             </div>
                             <div class="report-stats">
                                 <div class="stat">
-                                    <div class="stat-value">142</div>
+                                    <div class="stat-value" id="reportDocsTotal">0</div>
                                     <div class="stat-label">Документов</div>
                                 </div>
                                 <div class="stat">
-                                    <div class="stat-value">87</div>
+                                    <div class="stat-value" id="reportDocsApproved">0</div>
                                     <div class="stat-label">Согласовано</div>
                                 </div>
                                 <div class="stat">
-                                    <div class="stat-value">15</div>
+                                    <div class="stat-value" id="reportDocsReview">0</div>
                                     <div class="stat-label">В работе</div>
                                 </div>
                             </div>
@@ -131,15 +131,15 @@
                             </div>
                             <div class="report-stats">
                                 <div class="stat">
-                                    <div class="stat-value">23</div>
+                                    <div class="stat-value" id="reportApprovalsActive">0</div>
                                     <div class="stat-label">Активных</div>
                                 </div>
                                 <div class="stat">
-                                    <div class="stat-value">5.2</div>
+                                    <div class="stat-value" id="reportApprovalsAvg">0</div>
                                     <div class="stat-label">Дней среднее</div>
                                 </div>
                                 <div class="stat">
-                                    <div class="stat-value">12%</div>
+                                    <div class="stat-value" id="reportApprovalsOverdue">0%</div>
                                     <div class="stat-label">Просрочено</div>
                                 </div>
                             </div>
@@ -166,15 +166,15 @@
                             </div>
                             <div class="report-stats">
                                 <div class="stat">
-                                    <div class="stat-value">3</div>
+                                    <div class="stat-value" id="reportProjectsCount">0</div>
                                     <div class="stat-label">Проекта</div>
                                 </div>
                                 <div class="stat">
-                                    <div class="stat-value">45</div>
+                                    <div class="stat-value" id="reportProjectsDocs">0</div>
                                     <div class="stat-label">Документов</div>
                                 </div>
                                 <div class="stat">
-                                    <div class="stat-value">78%</div>
+                                    <div class="stat-value" id="reportProjectsProgress">0%</div>
                                     <div class="stat-label">Готовность</div>
                                 </div>
                             </div>
@@ -305,6 +305,9 @@
     <script src="script/script.js"></script>
     <script src="script/auth.js"></script>
     <script src="script/user-info.js"></script>
+    <script src="script/documents.js"></script>
+    <script src="script/approvals.js"></script>
+    <script src="script/reports-page.js"></script>
 </body>
 
 </html>

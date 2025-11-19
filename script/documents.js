@@ -259,6 +259,41 @@ const documentsManager = {
         return documents;
     },
 
+    async getDocumentStats() {
+        await this.init();
+        const documents = await this.getAllDocuments();
+        const categories = database.getTable('categories') || [];
+        const categoryCounts = {};
+
+        categories.forEach(category => {
+            if (category && category.name) {
+                categoryCounts[category.name] = 0;
+            }
+        });
+
+        documents.forEach(doc => {
+            if (doc.category) {
+                if (typeof categoryCounts[doc.category] === 'undefined') {
+                    categoryCounts[doc.category] = 0;
+                }
+                categoryCounts[doc.category] += 1;
+            }
+        });
+
+        const byStatus = {
+            draft: documents.filter(d => d.status === 'draft').length,
+            review: documents.filter(d => d.status === 'review').length,
+            approved: documents.filter(d => d.status === 'approved').length,
+            rejected: documents.filter(d => d.status === 'rejected').length
+        };
+
+        return {
+            total: documents.length,
+            byStatus,
+            byCategory: categoryCounts
+        };
+    },
+
     // Получить статус текстом
     getStatusText: function(status) {
         const statusMap = {

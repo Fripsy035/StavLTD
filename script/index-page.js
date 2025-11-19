@@ -33,9 +33,16 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     async function initIndexPage() {
+        await refreshFilterCounts();
         await renderTasks();
         await renderRecentDocuments();
         setupSearch();
+        setupSidebarFilters();
+    }
+
+    async function refreshFilterCounts() {
+        const stats = await documentsManager.getDocumentStats();
+        updateFilterCounts(stats);
     }
 
     async function renderTasks() {
@@ -127,6 +134,33 @@ document.addEventListener('DOMContentLoaded', function() {
             btn.addEventListener('click', function() {
                 window.location.href = 'documents.html';
             });
+        });
+    }
+
+    function setupSidebarFilters() {
+        const filterLinks = document.querySelectorAll('.filter-options a[data-filter-type]');
+        filterLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const type = this.dataset.filterType;
+                const value = this.dataset.filterValue;
+                sessionStorage.setItem('documentsFilter', JSON.stringify({ type, value }));
+                window.location.href = 'documents.html';
+            });
+        });
+    }
+
+    function updateFilterCounts(stats) {
+        const statusCounts = Object.assign({}, stats.byStatus, { all: stats.total });
+        const categoryCounts = Object.assign({}, stats.byCategory, { category_all: stats.total });
+
+        document.querySelectorAll('.filter-count').forEach(span => {
+            const key = span.dataset.filterKey;
+            if (key in statusCounts) {
+                span.textContent = statusCounts[key];
+            } else if (key && key in categoryCounts) {
+                span.textContent = categoryCounts[key];
+            }
         });
     }
 

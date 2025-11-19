@@ -1,6 +1,10 @@
 // Скрипт для страницы документов
 
 document.addEventListener('DOMContentLoaded', function() {
+    let currentFilters = {};
+    let currentPage = 1;
+    const PAGE_SIZE = 5;
+    const FILTER_STORAGE_KEY = 'documentsFilter';
     console.log('DOM загружен, инициализация страницы документов...');
     
     // Ждем загрузки всех необходимых модулей
@@ -40,38 +44,32 @@ document.addEventListener('DOMContentLoaded', function() {
     async function initDocumentsPage() {
         console.log('Инициализация страницы документов...');
         
-        // Проверка параметра поиска в URL
         const urlParams = new URLSearchParams(window.location.search);
         const searchQuery = urlParams.get('search');
-        
-        // Загрузка и отображение документов
-        const filters = searchQuery ? { search: searchQuery } : {};
+        currentFilters = searchQuery ? { search: searchQuery } : {};
         if (searchQuery) {
             const searchInput = document.querySelector('.search-input');
             if (searchInput) {
                 searchInput.value = searchQuery;
             }
         }
+
+        const storedFilter = consumeStoredFilter();
+        if (storedFilter) {
+            applyExternalFilter(storedFilter);
+            currentPage = 1;
+        }
         
-        // Обработчики событий устанавливаем сразу
         setupEventHandlers();
-        
-        // Создание модального окна для создания/редактирования документа
         createDocumentModal();
         
-        // Небольшая задержка, чтобы модальное окно успело создаться
         await new Promise(resolve => setTimeout(resolve, 200));
         
-        await renderDocuments(filters);
-        
-        // Поиск
+        await renderDocuments(currentFilters);
         setupSearch();
-        
-        // Фильтры
         setupFilters();
-        
-        // Обновление счетчиков
         await updateFilterCounts();
+        applyFilterHighlights();
         
         console.log('Страница документов инициализирована');
     }
@@ -160,6 +158,14 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('Найдено документов:', documents.length);
         console.log('Документы:', documents);
         
+        const totalDocuments = documents.length;
+        const totalPages = Math.max(1, Math.ceil(totalDocuments / PAGE_SIZE));
+        if (currentPage > totalPages) {
+            currentPage = totalPages;
+        }
+        const startIndex = (currentPage - 1) * PAGE_SIZE;
+        const pageDocuments = documents.slice(startIndex, startIndex + PAGE_SIZE);
+        
         const container = document.querySelector('.document-list');
         
         if (!container) {
@@ -167,13 +173,14 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        if (documents.length === 0) {
+        if (pageDocuments.length === 0) {
             container.innerHTML = '<li class="document-item"><p style="text-align: center; padding: 20px;">Документы не найдены</p></li>';
             console.log('Документы не найдены');
+            renderPagination(1, 0);
             return;
         }
 
-        container.innerHTML = documents.map(doc => `
+        container.innerHTML = pageDocuments.map(doc => `
             <li class="document-item" data-doc-id="${doc.id}">
                 <div class="document-details">
                     <div class="document-name">${doc.name}</div>
@@ -192,9 +199,42 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             </li>
         `).join('');
+        
+        renderPagination(totalPages, totalDocuments);
+    }
 
-        // Обновление счетчиков фильтров
-        updateFilterCounts();
+    function renderPagination(totalPages, totalDocuments) {
+        const pagination = document.getElementById('documentsPagination') || document.querySelector('.pagination');
+        if (!pagination) {
+            return;
+        }
+
+        if (totalDocuments <= PAGE_SIZE) {
+            pagination.innerHTML = '';
+            pagination.style.display = 'none';
+            return;
+        }
+
+        pagination.style.display = '';
+        const prevPage = currentPage > 1 ? currentPage - 1 : 1;
+        const nextPage = currentPage < totalPages ? currentPage + 1 : totalPages;
+
+        let html = '';
+        html += createPaginationLink('←', prevPage, currentPage === 1, false);
+        for (let i = 1; i <= totalPages; i++) {
+            html += createPaginationLink(i, i, false, i === currentPage);
+        }
+        html += createPaginationLink('→', nextPage, currentPage === totalPages, false);
+
+        pagination.innerHTML = html;
+    }
+
+    function createPaginationLink(label, page, disabled = false, active = false) {
+        const classes = [];
+        if (active) classes.push('active');
+        if (disabled) classes.push('disabled');
+        const classAttr = classes.length ? ` class="${classes.join(' ')}"` : '';
+        return `<li><a href="#" data-page="${page}"${classAttr}>${label}</a></li>`;
     }
 
     function setupEventHandlers() {
@@ -312,6 +352,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 sendForApproval(docId);
             }
         });
+
+        // Пагинация (делегирование событий)
+        document.addEventListener('click', function(e) {
+            const link = e.target.closest('.pagination a[data-page]');
+            if (!link) return;
+            e.preventDefault();
+            if (link.classList.contains('disabled')) return;
+            const page = parseInt(link.getAttribute('data-page'), 10);
+            if (isNaN(page) || page === currentPage) return;
+            currentPage = Math.max(1, page);
+            renderDocuments(currentFilters);
+        });
     }
 
     async function saveDocument() {
@@ -375,6 +427,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Обновляем список документов с текущими фильтрами (или без фильтров)
             // Сбрасываем фильтры, чтобы показать все документы, включая новый
             currentFilters = {};
+            currentPage = 1;
             
             // Принудительно обновляем данные из кэша перед обновлением списка
             if (typeof database !== 'undefined' && database.syncWithLocalStorage) {
@@ -391,7 +444,8 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Все документы после создания:', allDocs);
             console.log('Количество документов:', allDocs.length);
             
-            await renderDocuments({});
+            await renderDocuments(currentFilters);
+            applyFilterHighlights();
             
             // Очищаем поле поиска
             const searchInput = document.querySelector('.search-input');
@@ -442,7 +496,8 @@ document.addEventListener('DOMContentLoaded', function() {
     window.deleteDocument = async function(id) {
         if (confirm('Вы уверены, что хотите удалить этот документ?')) {
             await documentsManager.deleteDocument(id);
-            await renderDocuments();
+            await renderDocuments(currentFilters);
+            await updateFilterCounts();
         }
     };
 
@@ -481,16 +536,25 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Создаем список пользователей (исключаем текущего пользователя)
         const currentUser = auth.getCurrentUser();
-        const approversList = users
-            .filter(u => u.user_id !== currentUser.user_id)
-            .map(user => `
+        let approvers = users.filter(u => u.user_id !== currentUser.user_id);
+        const hasOtherApprovers = approvers.length > 0;
+        if (!hasOtherApprovers) {
+            approvers = [currentUser];
+        }
+
+        const approversList = approvers
+            .map(user => {
+                const isFallback = !hasOtherApprovers && user.user_id === currentUser.user_id;
+                const subtitle = user.user_id === currentUser.user_id ? (hasOtherApprovers ? (user.position || user.role) : 'Вы (инициатор)') : (user.position || user.role);
+                return `
                 <div class="approver-item">
                     <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 10px; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 10px;">
-                        <input type="checkbox" class="approver-checkbox" value="${user.user_id}" data-user-name="${user.fullName}">
-                        <span>${user.fullName} (${user.position || user.role})</span>
+                            <input type="checkbox" class="approver-checkbox" value="${user.user_id}" data-user-name="${user.fullName}" ${isFallback ? 'checked' : ''}>
+                            <span>${user.fullName} (${subtitle || 'Сотрудник'})</span>
                     </label>
                 </div>
-            `).join('');
+                `;
+            }).join('');
         
         const modalContent = `
             <form id="approvalForm">
@@ -783,7 +847,12 @@ document.addEventListener('DOMContentLoaded', function() {
         if (searchInput && searchButton) {
             const performSearch = async () => {
                 const query = searchInput.value.trim();
-                currentFilters = query ? { search: query } : {};
+                if (query) {
+                    currentFilters.search = query;
+                } else {
+                    delete currentFilters.search;
+                }
+                currentPage = 1;
                 await renderDocuments(currentFilters);
             };
 
@@ -797,59 +866,76 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function setupFilters() {
-        const filterLinks = document.querySelectorAll('.filter-options a');
+        const filterLinks = document.querySelectorAll('.filter-options a[data-filter-type]');
         filterLinks.forEach(link => {
             link.addEventListener('click', async function(e) {
                 e.preventDefault();
-                const text = this.textContent.trim();
+                const type = this.dataset.filterType;
+                const value = this.dataset.filterValue;
                 
-                let filters = {};
-                if (text.includes('Черновики')) {
-                    filters.status = 'draft';
-                } else if (text.includes('На согласовании')) {
-                    filters.status = 'review';
-                } else if (text.includes('Согласованные')) {
-                    filters.status = 'approved';
-                } else if (text.includes('Архивные')) {
-                    filters.status = 'rejected';
-                } else if (text.includes('Технические')) {
-                    filters.category = 'Технические';
-                } else if (text.includes('Коммерческие')) {
-                    filters.category = 'Коммерческие';
-                } else if (text.includes('Проектные')) {
-                    filters.category = 'Проектные';
-                } else if (text.includes('Отчетные')) {
-                    filters.category = 'Отчетные';
+                if (value === 'all') {
+                    delete currentFilters[type];
+                } else {
+                    currentFilters[type] = value;
                 }
-
-                currentFilters = filters;
-                await renderDocuments(filters);
+                
+                setFilterActive(type, value);
+                currentPage = 1;
+                await renderDocuments(currentFilters);
             });
         });
     }
 
+    function applyFilterHighlights() {
+        const statusValue = currentFilters.status || 'all';
+        const categoryValue = currentFilters.category || 'all';
+        setFilterActive('status', statusValue);
+        setFilterActive('category', categoryValue);
+    }
+
+    function setFilterActive(type, value) {
+        const links = document.querySelectorAll(`.filter-options a[data-filter-type="${type}"]`);
+        links.forEach(link => {
+            if (value === 'all') {
+                link.classList.toggle('active', link.dataset.filterValue === 'all');
+            } else {
+                link.classList.toggle('active', link.dataset.filterValue === value);
+            }
+        });
+    }
+
+    function consumeStoredFilter() {
+        const raw = sessionStorage.getItem(FILTER_STORAGE_KEY);
+        if (!raw) return null;
+        sessionStorage.removeItem(FILTER_STORAGE_KEY);
+        try {
+            return JSON.parse(raw);
+        } catch (error) {
+            console.error('Ошибка чтения сохраненного фильтра:', error);
+            return null;
+        }
+    }
+
+    function applyExternalFilter(filterData) {
+        if (!filterData || !filterData.type) return;
+        if (filterData.value === 'all') {
+            delete currentFilters[filterData.type];
+        } else {
+            currentFilters[filterData.type] = filterData.value;
+        }
+    }
+
     async function updateFilterCounts() {
-        const documents = await documentsManager.getAllDocuments();
-        const counts = {
-            all: documents.length,
-            draft: documents.filter(d => d.status === 'draft').length,
-            review: documents.filter(d => d.status === 'review').length,
-            approved: documents.filter(d => d.status === 'approved').length,
-            rejected: documents.filter(d => d.status === 'rejected').length
-        };
+        const stats = await documentsManager.getDocumentStats();
+        const statusCounts = Object.assign({}, stats.byStatus, { all: stats.total });
+        const categoryCounts = Object.assign({}, stats.byCategory, { category_all: stats.total });
 
         document.querySelectorAll('.filter-count').forEach(countEl => {
-            const text = countEl.closest('a').textContent;
-            if (text.includes('Все документы')) {
-                countEl.textContent = counts.all;
-            } else if (text.includes('Черновики')) {
-                countEl.textContent = counts.draft;
-            } else if (text.includes('На согласовании')) {
-                countEl.textContent = counts.review;
-            } else if (text.includes('Согласованные')) {
-                countEl.textContent = counts.approved;
-            } else if (text.includes('Архивные')) {
-                countEl.textContent = counts.rejected;
+            const key = countEl.dataset.filterKey;
+            if (key in statusCounts) {
+                countEl.textContent = statusCounts[key];
+            } else if (key in categoryCounts) {
+                countEl.textContent = categoryCounts[key];
             }
         });
     }

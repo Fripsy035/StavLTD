@@ -262,6 +262,11 @@ nav {
     color: var(--primary-color);
 }
 
+.filter-options a.active {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
 .filter-count {
     margin-left: auto;
     background-color: var(--secondary-color);
@@ -1088,6 +1093,11 @@ nav {
     border-color: var(--primary-color);
 }
 
+.pagination a.disabled {
+    pointer-events: none;
+    opacity: 0.5;
+}
+
 /* Footer */
 footer {
     background-color: var(--white);
@@ -1346,6 +1356,55 @@ footer {
 .auth-footer a:hover {
     color: var(--primary-dark);
     text-decoration: underline;
+}
+
+.password-group .password-field {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.password-group input {
+    padding-right: 45px;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 12px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--light-text);
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.3s;
+}
+
+.password-toggle:hover {
+    color: var(--primary-color);
+}
+
+.password-toggle.active {
+    color: var(--primary-color);
+}
+
+.password-toggle svg {
+    display: block;
+}
+
+.auth-demo-hint {
+    margin-top: 15px;
+    text-align: center;
+    font-size: 0.85rem;
+    color: var(--light-text);
+    line-height: 1.4;
+}
+
+.auth-demo-hint span {
+    color: var(--text-color);
+    font-weight: 600;
 }
 
 @media (max-width: 480px) {
