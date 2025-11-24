@@ -169,6 +169,245 @@ document.addEventListener('DOMContentLoaded', function() {
                 deleteUser(userId);
             }
         });
+        
+        // Сохранение общих настроек
+        const generalForm = document.querySelector('#general .settings-form');
+        if (generalForm) {
+            const saveBtn = generalForm.querySelector('.btn-primary');
+            if (saveBtn) {
+                saveBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    saveGeneralSettings();
+                });
+            }
+        }
+        
+        // Сохранение настроек процессов
+        const workflowForm = document.querySelector('#workflow .settings-form');
+        if (workflowForm) {
+            const saveBtn = workflowForm.querySelector('.btn-primary');
+            if (saveBtn) {
+                saveBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    saveWorkflowSettings();
+                });
+            }
+        }
+        
+        // Сохранение настроек уведомлений
+        const notificationsForm = document.querySelector('#notifications .settings-form');
+        if (notificationsForm) {
+            const saveBtn = notificationsForm.querySelector('.btn-primary');
+            if (saveBtn) {
+                saveBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    saveNotificationSettings();
+                });
+            }
+        }
+        
+        // Загрузка сохраненных настроек
+        loadSettings();
+        
+        // Инициализация информации о системе
+        if (document.getElementById('system')) {
+            updateSystemInfo();
+            updateBackupList();
+        }
+    }
+    
+    function loadSettings() {
+        // Загружаем общие настройки
+        const settings = JSON.parse(localStorage.getItem('system_settings') || '{}');
+        
+        if (settings.general) {
+            const general = settings.general;
+            if (general.timezone) {
+                const timezoneSelect = document.getElementById('timezone');
+                if (timezoneSelect) timezoneSelect.value = general.timezone;
+            }
+            if (general.dateFormat) {
+                const dateFormatSelect = document.getElementById('date-format');
+                if (dateFormatSelect) dateFormatSelect.value = general.dateFormat;
+            }
+            if (general.emailNotifications !== undefined) {
+                const emailCheckbox = document.getElementById('email-notifications');
+                if (emailCheckbox) emailCheckbox.checked = general.emailNotifications;
+            }
+            if (general.autoLogout !== undefined) {
+                const autoLogoutCheckbox = document.getElementById('auto-logout');
+                if (autoLogoutCheckbox) autoLogoutCheckbox.checked = general.autoLogout;
+            }
+        }
+        
+        if (settings.workflow) {
+            const workflow = settings.workflow;
+            if (workflow.defaultApprovalTime) {
+                const defaultTimeInput = document.getElementById('default-approval-time');
+                if (defaultTimeInput) defaultTimeInput.value = workflow.defaultApprovalTime;
+            }
+            if (workflow.reminderDays) {
+                const reminderDaysInput = document.getElementById('reminder-days');
+                if (reminderDaysInput) reminderDaysInput.value = workflow.reminderDays;
+            }
+            if (workflow.autoEscalation !== undefined) {
+                const autoEscalationCheckbox = document.getElementById('auto-escalation');
+                if (autoEscalationCheckbox) autoEscalationCheckbox.checked = workflow.autoEscalation;
+            }
+            if (workflow.parallelApproval !== undefined) {
+                const parallelApprovalCheckbox = document.getElementById('parallel-approval');
+                if (parallelApprovalCheckbox) parallelApprovalCheckbox.checked = workflow.parallelApproval;
+            }
+        }
+        
+        if (settings.notifications) {
+            const notifications = settings.notifications;
+            if (notifications.notifyNewDocument !== undefined) {
+                const notifyNewDocCheckbox = document.getElementById('notify-new-document');
+                if (notifyNewDocCheckbox) notifyNewDocCheckbox.checked = notifications.notifyNewDocument;
+            }
+            if (notifications.notifyApproval !== undefined) {
+                const notifyApprovalCheckbox = document.getElementById('notify-approval');
+                if (notifyApprovalCheckbox) notifyApprovalCheckbox.checked = notifications.notifyApproval;
+            }
+            if (notifications.notifyOverdue !== undefined) {
+                const notifyOverdueCheckbox = document.getElementById('notify-overdue');
+                if (notifyOverdueCheckbox) notifyOverdueCheckbox.checked = notifications.notifyOverdue;
+            }
+            if (notifications.notifyComments !== undefined) {
+                const notifyCommentsCheckbox = document.getElementById('notify-comments');
+                if (notifyCommentsCheckbox) notifyCommentsCheckbox.checked = notifications.notifyComments;
+            }
+            if (notifications.frequency) {
+                const frequencySelect = document.getElementById('notification-frequency');
+                if (frequencySelect) frequencySelect.value = notifications.frequency;
+            }
+        }
+        
+        if (settings.security) {
+            const security = settings.security;
+            if (security.passwordPolicy) {
+                const passwordPolicySelect = document.getElementById('password-policy');
+                if (passwordPolicySelect) passwordPolicySelect.value = security.passwordPolicy;
+            }
+            if (security.sessionTimeout) {
+                const sessionTimeoutInput = document.getElementById('session-timeout');
+                if (sessionTimeoutInput) sessionTimeoutInput.value = security.sessionTimeout;
+            }
+            if (security.require2FA !== undefined) {
+                const require2FACheckbox = document.getElementById('require-2fa');
+                if (require2FACheckbox) require2FACheckbox.checked = security.require2FA;
+            }
+            if (security.logLoginAttempts !== undefined) {
+                const logLoginAttemptsCheckbox = document.getElementById('log-login-attempts');
+                if (logLoginAttemptsCheckbox) logLoginAttemptsCheckbox.checked = security.logLoginAttempts;
+            }
+            if (security.blockAfterFailed !== undefined) {
+                const blockAfterFailedCheckbox = document.getElementById('block-after-failed');
+                if (blockAfterFailedCheckbox) blockAfterFailedCheckbox.checked = security.blockAfterFailed;
+            }
+            if (security.ipWhitelist) {
+                const ipWhitelistTextarea = document.getElementById('ip-whitelist');
+                if (ipWhitelistTextarea) ipWhitelistTextarea.value = security.ipWhitelist.join('\n');
+            }
+        }
+        
+        if (settings.backup) {
+            const backup = settings.backup;
+            if (backup.frequency) {
+                const backupFrequencySelect = document.getElementById('backup-frequency');
+                if (backupFrequencySelect) backupFrequencySelect.value = backup.frequency;
+            }
+            if (backup.time) {
+                const backupTimeInput = document.getElementById('backup-time');
+                if (backupTimeInput) backupTimeInput.value = backup.time;
+            }
+            if (backup.retention) {
+                const backupRetentionInput = document.getElementById('backup-retention');
+                if (backupRetentionInput) backupRetentionInput.value = backup.retention;
+            }
+            if (backup.compress !== undefined) {
+                const backupCompressCheckbox = document.getElementById('backup-compress');
+                if (backupCompressCheckbox) backupCompressCheckbox.checked = backup.compress;
+            }
+            if (backup.encrypt !== undefined) {
+                const backupEncryptCheckbox = document.getElementById('backup-encrypt');
+                if (backupEncryptCheckbox) backupEncryptCheckbox.checked = backup.encrypt;
+            }
+        }
+        
+        if (settings.system) {
+            const system = settings.system;
+            if (system.systemName) {
+                const systemNameInput = document.getElementById('system-name');
+                if (systemNameInput) systemNameInput.value = system.systemName;
+            }
+            if (system.maxFileSize) {
+                const maxFileSizeInput = document.getElementById('max-file-size');
+                if (maxFileSizeInput) maxFileSizeInput.value = system.maxFileSize;
+            }
+            if (system.allowedFileTypes) {
+                const allowedFileTypesInput = document.getElementById('allowed-file-types');
+                if (allowedFileTypesInput) allowedFileTypesInput.value = system.allowedFileTypes.join(',');
+            }
+            if (system.maxDocumentsPerUser) {
+                const maxDocumentsPerUserInput = document.getElementById('max-documents-per-user');
+                if (maxDocumentsPerUserInput) maxDocumentsPerUserInput.value = system.maxDocumentsPerUser;
+            }
+            if (system.enableVersioning !== undefined) {
+                const enableVersioningCheckbox = document.getElementById('enable-versioning');
+                if (enableVersioningCheckbox) enableVersioningCheckbox.checked = system.enableVersioning;
+            }
+            if (system.enableAuditLog !== undefined) {
+                const enableAuditLogCheckbox = document.getElementById('enable-audit-log');
+                if (enableAuditLogCheckbox) enableAuditLogCheckbox.checked = system.enableAuditLog;
+            }
+            if (system.enableMaintenanceMode !== undefined) {
+                const enableMaintenanceModeCheckbox = document.getElementById('enable-maintenance-mode');
+                if (enableMaintenanceModeCheckbox) enableMaintenanceModeCheckbox.checked = system.enableMaintenanceMode;
+            }
+            if (system.logLevel) {
+                const logLevelSelect = document.getElementById('log-level');
+                if (logLevelSelect) logLevelSelect.value = system.logLevel;
+            }
+        }
+    }
+    
+    function saveGeneralSettings() {
+        const settings = JSON.parse(localStorage.getItem('system_settings') || '{}');
+        settings.general = {
+            timezone: document.getElementById('timezone').value,
+            dateFormat: document.getElementById('date-format').value,
+            emailNotifications: document.getElementById('email-notifications').checked,
+            autoLogout: document.getElementById('auto-logout').checked
+        };
+        localStorage.setItem('system_settings', JSON.stringify(settings));
+        alert('Общие настройки успешно сохранены');
+    }
+    
+    function saveWorkflowSettings() {
+        const settings = JSON.parse(localStorage.getItem('system_settings') || '{}');
+        settings.workflow = {
+            defaultApprovalTime: parseInt(document.getElementById('default-approval-time').value),
+            reminderDays: parseInt(document.getElementById('reminder-days').value),
+            autoEscalation: document.getElementById('auto-escalation').checked,
+            parallelApproval: document.getElementById('parallel-approval').checked
+        };
+        localStorage.setItem('system_settings', JSON.stringify(settings));
+        alert('Настройки процессов успешно сохранены');
+    }
+    
+    function saveNotificationSettings() {
+        const settings = JSON.parse(localStorage.getItem('system_settings') || '{}');
+        settings.notifications = {
+            notifyNewDocument: document.getElementById('notify-new-document').checked,
+            notifyApproval: document.getElementById('notify-approval').checked,
+            notifyOverdue: document.getElementById('notify-overdue').checked,
+            notifyComments: document.getElementById('notify-comments').checked,
+            frequency: document.getElementById('notification-frequency').value
+        };
+        localStorage.setItem('system_settings', JSON.stringify(settings));
+        alert('Настройки уведомлений успешно сохранены');
     }
 
     function createUserModal() {
@@ -542,5 +781,194 @@ document.addEventListener('DOMContentLoaded', function() {
             alert('Ошибка при удалении пользователя');
         }
     }
+    
+    // Функции для других вкладок настроек
+    window.saveSecuritySettings = function() {
+        const settings = JSON.parse(localStorage.getItem('system_settings') || '{}');
+        settings.security = {
+            passwordPolicy: document.getElementById('password-policy').value,
+            sessionTimeout: parseInt(document.getElementById('session-timeout').value),
+            require2FA: document.getElementById('require-2fa').checked,
+            logLoginAttempts: document.getElementById('log-login-attempts').checked,
+            blockAfterFailed: document.getElementById('block-after-failed').checked,
+            ipWhitelist: document.getElementById('ip-whitelist').value.split('\n').filter(ip => ip.trim())
+        };
+        localStorage.setItem('system_settings', JSON.stringify(settings));
+        alert('Настройки безопасности успешно сохранены');
+    };
+    
+    window.saveBackupSettings = function() {
+        const settings = JSON.parse(localStorage.getItem('system_settings') || '{}');
+        settings.backup = {
+            frequency: document.getElementById('backup-frequency').value,
+            time: document.getElementById('backup-time').value,
+            retention: parseInt(document.getElementById('backup-retention').value),
+            compress: document.getElementById('backup-compress').checked,
+            encrypt: document.getElementById('backup-encrypt').checked
+        };
+        localStorage.setItem('system_settings', JSON.stringify(settings));
+        alert('Настройки резервного копирования успешно сохранены');
+    };
+    
+    window.createBackup = function() {
+        if (!confirm('Создать резервную копию всех данных системы?')) {
+            return;
+        }
+        
+        try {
+            const data = localStorage.getItem('sed_database');
+            if (!data) {
+                alert('Нет данных для резервного копирования');
+                return;
+            }
+            
+            const timestamp = new Date().toISOString();
+            const backup = {
+                timestamp: timestamp,
+                version: '1.0.0',
+                data: JSON.parse(data)
+            };
+            
+            const backupData = JSON.stringify(backup, null, 2);
+            const blob = new Blob([backupData], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `backup_${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            // Сохраняем информацию о резервной копии
+            const backups = JSON.parse(localStorage.getItem('backup_list') || '[]');
+            backups.push({
+                timestamp: timestamp,
+                size: (blob.size / 1024).toFixed(2) + ' KB'
+            });
+            // Храним только последние 10 копий
+            if (backups.length > 10) {
+                backups.shift();
+            }
+            localStorage.setItem('backup_list', JSON.stringify(backups));
+            
+            // Обновляем список резервных копий
+            updateBackupList();
+            alert('Резервная копия успешно создана и загружена');
+        } catch (error) {
+            console.error('Ошибка при создании резервной копии:', error);
+            alert('Ошибка при создании резервной копии: ' + error.message);
+        }
+    };
+    
+    window.restoreBackup = function() {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.json';
+        input.onchange = function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            if (!confirm('ВНИМАНИЕ! Восстановление из резервной копии заменит все текущие данные. Продолжить?')) {
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                try {
+                    const backup = JSON.parse(event.target.result);
+                    if (backup.data) {
+                        localStorage.setItem('sed_database', JSON.stringify(backup.data));
+                        alert('Данные успешно восстановлены из резервной копии. Страница будет перезагружена.');
+                        window.location.reload();
+                    } else {
+                        alert('Неверный формат резервной копии');
+                    }
+                } catch (error) {
+                    console.error('Ошибка при восстановлении:', error);
+                    alert('Ошибка при восстановлении: ' + error.message);
+                }
+            };
+            reader.readAsText(file);
+        };
+        input.click();
+    };
+    
+    function updateBackupList() {
+        const backupList = document.getElementById('backup-list');
+        if (!backupList) return;
+        
+        const backups = JSON.parse(localStorage.getItem('backup_list') || '[]');
+        if (backups.length === 0) {
+            backupList.innerHTML = '<p style="color: #777; font-style: italic;">Резервные копии еще не создавались</p>';
+            return;
+        }
+        
+        backupList.innerHTML = backups.map((backup, index) => `
+            <div style="padding: 10px; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 10px;">
+                <div><strong>Резервная копия #${index + 1}</strong></div>
+                <div style="font-size: 0.9rem; color: #777;">Создана: ${new Date(backup.timestamp).toLocaleString('ru-RU')}</div>
+                <div style="font-size: 0.9rem; color: #777;">Размер: ${backup.size || 'N/A'}</div>
+            </div>
+        `).join('');
+    }
+    
+    window.saveSystemSettings = async function() {
+        const settings = JSON.parse(localStorage.getItem('system_settings') || '{}');
+        settings.system = {
+            systemName: document.getElementById('system-name').value,
+            maxFileSize: parseInt(document.getElementById('max-file-size').value),
+            allowedFileTypes: document.getElementById('allowed-file-types').value.split(',').map(t => t.trim()),
+            maxDocumentsPerUser: parseInt(document.getElementById('max-documents-per-user').value),
+            enableVersioning: document.getElementById('enable-versioning').checked,
+            enableAuditLog: document.getElementById('enable-audit-log').checked,
+            enableMaintenanceMode: document.getElementById('enable-maintenance-mode').checked,
+            logLevel: document.getElementById('log-level').value
+        };
+        localStorage.setItem('system_settings', JSON.stringify(settings));
+        
+        // Обновляем информацию о системе
+        await updateSystemInfo();
+        
+        alert('Системные настройки успешно сохранены');
+    };
+    
+    async function updateSystemInfo() {
+        const installDate = localStorage.getItem('system_install_date') || new Date().toISOString();
+        if (!localStorage.getItem('system_install_date')) {
+            localStorage.setItem('system_install_date', installDate);
+        }
+        
+        const installDateEl = document.getElementById('install-date');
+        if (installDateEl) {
+            installDateEl.textContent = new Date(installDate).toLocaleDateString('ru-RU');
+        }
+        
+        const lastUpdateEl = document.getElementById('last-update');
+        if (lastUpdateEl) {
+            lastUpdateEl.textContent = new Date().toLocaleDateString('ru-RU');
+        }
+        
+        const totalUsersEl = document.getElementById('total-users');
+        if (totalUsersEl) {
+            const users = auth.getUsers();
+            totalUsersEl.textContent = users.length;
+        }
+        
+        const totalDocumentsEl = document.getElementById('total-documents');
+        if (totalDocumentsEl) {
+            try {
+                if (typeof documentsManager !== 'undefined') {
+                    const documents = await documentsManager.getAllDocuments();
+                    totalDocumentsEl.textContent = documents.length;
+                } else {
+                    const documents = database.getTable('documents');
+                    totalDocumentsEl.textContent = documents.length;
+                }
+            } catch (error) {
+                console.error('Ошибка при получении количества документов:', error);
+                totalDocumentsEl.textContent = 'N/A';
+            }
+        }
+    }
+    
 });
 

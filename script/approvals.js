@@ -19,8 +19,21 @@ const approvalsManager = {
     // Получить все согласования
     async getAllApprovals() {
         await this.init();
+        // Принудительно синхронизируем данные перед получением
+        database.syncWithLocalStorage();
         const processes = database.getTable('approval_processes');
-        return processes.map(process => this._mapApprovalFromDB(process));
+        console.log('getAllApprovals: процессы из БД (сырые):', processes);
+        console.log('getAllApprovals: количество процессов:', processes.length);
+        
+        const mapped = processes.map(process => {
+            const mapped = this._mapApprovalFromDB(process);
+            console.log('getAllApprovals: маппинг процесса', process.process_id, '->', mapped);
+            return mapped;
+        }).filter(a => a !== null);
+        
+        console.log('getAllApprovals: замапленные согласования:', mapped);
+        console.log('getAllApprovals: количество замапленных:', mapped.length);
+        return mapped;
     },
 
     // Маппинг согласования из БД в формат приложения
@@ -31,10 +44,22 @@ const approvalsManager = {
         }
         
         console.log('Маппинг процесса согласования:', dbProcess);
+        console.log('document_id процесса:', dbProcess.document_id);
+        console.log('initiator_id процесса:', dbProcess.initiator_id);
+        
+        // Принудительно синхронизируем данные перед поиском
+        database.syncWithLocalStorage();
         
         const document = database.find('documents', d => d.document_id === dbProcess.document_id);
+        console.log('Найденный документ:', document);
+        
         const initiator = database.find('users', u => u.user_id === dbProcess.initiator_id);
-        const steps = database.findAll('approval_steps', s => s.process_id === dbProcess.process_id)
+        console.log('Найденный инициатор:', initiator);
+        
+        const allSteps = database.findAll('approval_steps', s => s.process_id === dbProcess.process_id);
+        console.log('Все шаги для процесса', dbProcess.process_id, ':', allSteps);
+        
+        const steps = allSteps
             .sort((a, b) => a.step_number - b.step_number)
             .map(step => {
                 const assignee = database.find('users', u => u.user_id === step.assignee_id);
@@ -67,6 +92,7 @@ const approvalsManager = {
         };
         
         console.log('Процесс согласования замаплен:', mapped);
+        console.log('Детали замапленного процесса:', JSON.stringify(mapped, null, 2));
         return mapped;
     },
 
@@ -134,9 +160,14 @@ const approvalsManager = {
             const currentStep = approval.steps.find(step => step.status === 'pending');
             console.log('getMyApprovals: проверка согласования', approval.id, 'текущий шаг:', currentStep);
             if (currentStep) {
-                console.log('getMyApprovals: approverId:', currentStep.approverId, 'user_id:', user.user_id, 'совпадение:', currentStep.approverId === user.user_id);
+                // Приводим к числам для корректного сравнения
+                const approverId = typeof currentStep.approverId === 'string' ? parseInt(currentStep.approverId) : currentStep.approverId;
+                const userId = typeof user.user_id === 'string' ? parseInt(user.user_id) : user.user_id;
+                const match = approverId === userId;
+                console.log('getMyApprovals: approverId:', currentStep.approverId, '->', approverId, 'user_id:', user.user_id, '->', userId, 'совпадение:', match);
+                return match;
             }
-            return currentStep && currentStep.approverId === user.user_id;
+            return false;
         });
         
         console.log('getMyApprovals: отфильтрованные согласования:', filtered);
@@ -144,8 +175,8 @@ const approvalsManager = {
     },
 
     // Создать новое согласование
-    async createApproval(documentId, steps) {
-        console.log('createApproval вызвана с documentId:', documentId, 'steps:', steps);
+    async createApproval(documentId, steps, deadlineDate = null) {
+        console.log('createApproval вызвана с documentId:', documentId, 'steps:', steps, 'deadlineDate:', deadlineDate);
         
         await this.init();
         const user = auth.getCurrentUser();
@@ -174,9 +205,14 @@ const approvalsManager = {
             return null;
         }
 
-        // Вычисляем deadline (5 дней от текущей даты)
-        const deadline = new Date();
-        deadline.setDate(deadline.getDate() + 5);
+        // Используем переданную дату дедлайна или вычисляем по умолчанию (5 дней от текущей даты)
+        let deadline;
+        if (deadlineDate && deadlineDate instanceof Date) {
+            deadline = deadlineDate;
+        } else {
+            deadline = new Date();
+            deadline.setDate(deadline.getDate() + 5);
+        }
 
         // Создаем процесс согласования
         console.log('Создание процесса согласования...');
@@ -214,10 +250,21 @@ const approvalsManager = {
         await documentsManager.updateDocument(docId, { status: 'review' });
         
         // Синхронизируем данные
+        console.log('Синхронизация данных с localStorage...');
         database.syncWithLocalStorage();
 
-        const mappedApproval = this._mapApprovalFromDB(newProcess);
+        // Получаем свежий процесс из БД для маппинга
+        const freshProcess = database.find('approval_processes', p => p.process_id === newProcess.process_id);
+        console.log('Свежий процесс из БД:', freshProcess);
+        
+        if (!freshProcess) {
+            console.error('Процесс не найден после создания!');
+            return null;
+        }
+
+        const mappedApproval = this._mapApprovalFromDB(freshProcess);
         console.log('Согласование создано и замаплено:', mappedApproval);
+        console.log('Детали маппированного согласования:', JSON.stringify(mappedApproval, null, 2));
         return mappedApproval;
     },
 

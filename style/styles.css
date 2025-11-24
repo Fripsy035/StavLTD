@@ -1,3 +1,34 @@
+.approval-comment-box {
+    margin-top: 15px;
+    padding: 12px;
+    border: 1px solid #e0e6ef;
+    border-radius: 6px;
+    background: #f5f7fb;
+}
+
+.approval-comment-box input {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid #d0d7e2;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    font-size: 14px;
+}
+
+.approval-comment-box .comment-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.document-view p {
+    margin: 8px 0;
+}
+
+.document-view a {
+    color: var(--primary-color);
+    text-decoration: underline;
+}
 :root {
     --primary-color: #1B6673;
     --primary-dark: #14545e;
@@ -363,6 +394,8 @@ nav {
 
 .document-details {
     flex: 1;
+    min-width: 0;
+    margin-right: 15px;
 }
 
 .document-name {
@@ -382,17 +415,22 @@ nav {
 
 .document-actions {
     display: flex;
-    gap: 10px;
+    gap: 8px;
+    flex-wrap: nowrap;
+    align-items: center;
+    flex-shrink: 0;
 }
 
 /* Buttons */
 .btn {
-    padding: 6px 12px;
+    padding: 6px 10px;
     border: none;
     border-radius: 4px;
     cursor: pointer;
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     transition: background-color 0.3s;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .btn-download {
@@ -407,6 +445,8 @@ nav {
 .btn-edit {
     background-color: var(--secondary-color);
     color: var(--text-color);
+    padding: 6px 10px;
+    font-size: 0.75rem;
 }
 
 .btn-edit:hover {
@@ -430,8 +470,8 @@ nav {
 .btn-primary {
     background-color: var(--primary-color);
     color: white;
-    padding: 10px 20px;
-    font-size: 0.9rem;
+    padding: 6px 10px;
+    font-size: 0.75rem;
 }
 
 .btn-primary:hover {
@@ -452,8 +492,8 @@ nav {
 .btn-danger {
     background-color: var(--danger);
     color: white;
-    padding: 10px 20px;
-    font-size: 0.9rem;
+    padding: 6px 10px;
+    font-size: 0.75rem;
 }
 
 .btn-danger:hover {
@@ -474,8 +514,8 @@ nav {
 .btn-approve {
     background-color: var(--success);
     color: white;
-    padding: 10px 16px;
-    font-size: 0.9rem;
+    padding: 6px 10px;
+    font-size: 0.75rem;
 }
 
 .btn-approve:hover {
@@ -485,8 +525,8 @@ nav {
 .btn-reject {
     background-color: var(--danger);
     color: white;
-    padding: 10px 16px;
-    font-size: 0.9rem;
+    padding: 6px 10px;
+    font-size: 0.75rem;
 }
 
 .btn-reject:hover {

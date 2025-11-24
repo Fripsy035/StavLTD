@@ -1,26 +1,26 @@
 // Скрипт для страницы документов
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     let currentFilters = {};
     let currentPage = 1;
     const PAGE_SIZE = 5;
     const FILTER_STORAGE_KEY = 'documentsFilter';
     console.log('DOM загружен, инициализация страницы документов...');
-    
+
     // Ждем загрузки всех необходимых модулей
     function waitForModules() {
         return new Promise((resolve) => {
             const checkModules = setInterval(() => {
-                if (typeof database !== 'undefined' && 
-                    typeof auth !== 'undefined' && 
-                    typeof documentsManager !== 'undefined' && 
+                if (typeof database !== 'undefined' &&
+                    typeof auth !== 'undefined' &&
+                    typeof documentsManager !== 'undefined' &&
                     typeof modals !== 'undefined') {
                     clearInterval(checkModules);
                     console.log('Все модули загружены');
                     resolve();
                 }
             }, 100);
-            
+
             // Таймаут на случай, если модули не загрузятся
             setTimeout(() => {
                 clearInterval(checkModules);
@@ -29,21 +29,21 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 5000);
         });
     }
-    
+
     waitForModules().then(() => {
         // Проверка авторизации
         if (typeof auth === 'undefined' || !auth.isAuthenticated()) {
             window.location.href = 'login.html';
             return;
         }
-        
+
         // Инициализация страницы
         initDocumentsPage();
     });
 
     async function initDocumentsPage() {
         console.log('Инициализация страницы документов...');
-        
+
         const urlParams = new URLSearchParams(window.location.search);
         const searchQuery = urlParams.get('search');
         currentFilters = searchQuery ? { search: searchQuery } : {};
@@ -59,31 +59,31 @@ document.addEventListener('DOMContentLoaded', function() {
             applyExternalFilter(storedFilter);
             currentPage = 1;
         }
-        
+
         setupEventHandlers();
-        
+
         // Проверяем роль пользователя для отображения кнопки создания документа
         const user = auth.getCurrentUser();
         const isRegularUser = user && user.role === 'Пользователь';
-        
+
         // Скрываем кнопку "Создать документ" для обычных пользователей
         const createBtn = document.querySelector('.btn-create');
         if (createBtn && isRegularUser) {
             createBtn.style.display = 'none';
         }
-        
+
         if (!isRegularUser) {
             createDocumentModal();
         }
-        
+
         await new Promise(resolve => setTimeout(resolve, 200));
-        
+
         await renderDocuments(currentFilters);
         setupSearch();
         setupFilters();
         await updateFilterCounts();
         applyFilterHighlights();
-        
+
         console.log('Страница документов инициализирована');
     }
 
@@ -93,9 +93,9 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Модальное окно уже существует');
             return;
         }
-        
+
         console.log('Создание модального окна...');
-        
+
         const modalContent = `
             <form id="documentForm">
                 <div class="form-group">
@@ -127,12 +127,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             </form>
         `;
-        
+
         if (typeof modals !== 'undefined' && modals.create) {
             try {
                 modals.create('documentModal', 'Документ', modalContent);
                 console.log('Модальное окно создано');
-                
+
                 // Устанавливаем обработчик формы после создания модального окна
                 setTimeout(() => {
                     const form = document.getElementById('documentForm');
@@ -140,8 +140,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         // Удаляем старый обработчик, если есть
                         const newForm = form.cloneNode(true);
                         form.parentNode.replaceChild(newForm, form);
-                        
-                        newForm.addEventListener('submit', function(e) {
+
+                        newForm.addEventListener('submit', function (e) {
                             e.preventDefault();
                             console.log('Отправка формы документа');
                             saveDocument();
@@ -170,11 +170,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const documents = await documentsManager.filterDocuments(filters);
         console.log('Найдено документов:', documents.length);
         console.log('Документы:', documents);
-        
+
         // Проверяем роль пользователя
         const user = auth.getCurrentUser();
         const isRegularUser = user && user.role === 'Пользователь';
-        
+
         const totalDocuments = documents.length;
         const totalPages = Math.max(1, Math.ceil(totalDocuments / PAGE_SIZE));
         if (currentPage > totalPages) {
@@ -182,9 +182,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         const startIndex = (currentPage - 1) * PAGE_SIZE;
         const pageDocuments = documents.slice(startIndex, startIndex + PAGE_SIZE);
-        
+
         const container = document.querySelector('.document-list');
-        
+
         if (!container) {
             console.error('Контейнер .document-list не найден');
             return;
@@ -199,15 +199,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
         container.innerHTML = pageDocuments.map(doc => {
             // Для обычных пользователей показываем только кнопку "Скачать"
-            const actions = isRegularUser 
+            const actions = isRegularUser
                 ? `<button class="btn btn-download" data-doc-id="${doc.id}">Скачать</button>`
                 : `
                     <button class="btn btn-download" data-doc-id="${doc.id}">Скачать</button>
                     <button class="btn btn-edit" data-doc-id="${doc.id}">Редактировать</button>
-                    ${doc.status === 'draft' ? `<button class="btn btn-primary btn-send-approval" data-doc-id="${doc.id}">Отправить на согласование</button>` : ''}
+                    ${doc.status === 'draft' ? `<button class="btn btn-primary btn-send-approval" data-doc-id="${doc.id}" title="Отправить на согласование">На согласование</button>` : ''}
+                    ${doc.status === 'rejected' ? `<button class="btn btn-primary btn-resend-approval" data-doc-id="${doc.id}" title="Отправить на повторное согласование">Повторно</button>` : ''}
                     <button class="btn btn-danger" data-doc-id="${doc.id}" onclick="deleteDocument(${doc.id})">Удалить</button>
                 `;
-            
+
             return `
             <li class="document-item" data-doc-id="${doc.id}">
                 <div class="document-details">
@@ -225,7 +226,7 @@ document.addEventListener('DOMContentLoaded', function() {
             </li>
         `;
         }).join('');
-        
+
         renderPagination(totalPages, totalDocuments);
     }
 
@@ -265,11 +266,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function setupEventHandlers() {
         console.log('Установка обработчиков событий...');
-        
+
         // Функция для открытия модального окна
         function openCreateModal() {
             console.log('Открытие модального окна создания документа...');
-            
+
             // Убеждаемся, что модальное окно создано
             let modal = document.getElementById('documentModal');
             if (!modal) {
@@ -289,18 +290,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 showModal();
             }
         }
-        
+
         function showModal() {
             const form = document.getElementById('documentForm');
             const docIdField = document.getElementById('docId');
-            
+
             if (form) {
                 form.reset();
             }
             if (docIdField) {
                 docIdField.value = '';
             }
-            
+
             if (typeof modals !== 'undefined' && modals.show) {
                 modals.show('documentModal');
                 console.log('Модальное окно открыто успешно');
@@ -317,36 +318,36 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         }
-        
+
         // Находим кнопку и устанавливаем обработчик напрямую
         const createBtn = document.querySelector('.btn-create');
         if (createBtn) {
             console.log('Кнопка создания найдена:', createBtn);
-            
+
             // Удаляем все старые обработчики, клонируя элемент
             const newBtn = createBtn.cloneNode(true);
             createBtn.parentNode.replaceChild(newBtn, createBtn);
-            
+
             // Устанавливаем новый обработчик
-            newBtn.addEventListener('click', function(e) {
+            newBtn.addEventListener('click', function (e) {
                 e.preventDefault();
                 e.stopPropagation();
-                
+
                 console.log('Кнопка создания документа нажата!');
-                
+
                 openCreateModal();
             });
-            
+
             console.log('Обработчик кнопки установлен');
         } else {
             console.error('Кнопка .btn-create не найдена в DOM');
-            
+
             // Используем делегирование как запасной вариант (только для не-обычных пользователей)
             const user = auth.getCurrentUser();
             const isRegularUser = user && user.role === 'Пользователь';
-            
+
             if (!isRegularUser) {
-                document.body.addEventListener('click', function(e) {
+                document.body.addEventListener('click', function (e) {
                     if (e.target.classList.contains('btn-create') || e.target.closest('.btn-create')) {
                         e.preventDefault();
                         e.stopPropagation();
@@ -356,17 +357,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
             }
         }
-        
+
         // Сохраняем функции для использования в других местах (только для не-обычных пользователей)
         const user = auth.getCurrentUser();
         const isRegularUser = user && user.role === 'Пользователь';
-        
+
         if (!isRegularUser) {
             window.openCreateModal = openCreateModal;
         }
-        
+
         // Редактирование документа (делегирование событий)
-        document.addEventListener('click', function(e) {
+        document.addEventListener('click', function (e) {
             if (e.target.classList.contains('btn-edit')) {
                 const docId = e.target.getAttribute('data-doc-id');
                 editDocument(docId);
@@ -374,15 +375,15 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         // Скачивание документа (делегирование событий)
-        document.addEventListener('click', function(e) {
+        document.addEventListener('click', function (e) {
             if (e.target.classList.contains('btn-download')) {
                 const docId = e.target.getAttribute('data-doc-id');
                 downloadDocument(docId);
             }
         });
-        
+
         // Отправка на согласование (делегирование событий)
-        document.addEventListener('click', function(e) {
+        document.addEventListener('click', function (e) {
             const sendBtn = e.target.closest('.btn-send-approval');
             if (sendBtn) {
                 e.preventDefault();
@@ -395,8 +396,22 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
+        // Отправка на повторное согласование (делегирование событий)
+        document.addEventListener('click', function (e) {
+            const resendBtn = e.target.closest('.btn-resend-approval');
+            if (resendBtn) {
+                e.preventDefault();
+                e.stopPropagation();
+                const docId = resendBtn.getAttribute('data-doc-id');
+                console.log('Кнопка "Отправить на повторное согласование" нажата, docId:', docId);
+                if (docId) {
+                    resendForApproval(parseInt(docId));
+                }
+            }
+        });
+
         // Пагинация (делегирование событий)
-        document.addEventListener('click', function(e) {
+        document.addEventListener('click', function (e) {
             const link = e.target.closest('.pagination a[data-page]');
             if (!link) return;
             e.preventDefault();
@@ -410,14 +425,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function saveDocument() {
         console.log('Сохранение документа...');
-        
+
         const form = document.getElementById('documentForm');
         if (!form) {
             console.error('Форма не найдена');
             alert('Ошибка: форма не найдена');
             return;
         }
-        
+
         const formData = new FormData(form);
         const docId = document.getElementById('docId')?.value;
 
@@ -439,22 +454,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log('Создание нового документа');
                 savedDoc = await documentsManager.createDocument(documentData);
             }
-            
+
             console.log('Документ сохранен:', savedDoc);
-            
+
             if (!savedDoc) {
                 alert('Ошибка: документ не был сохранен');
                 return;
             }
-            
+
             // Принудительно обновляем данные из кэша
             if (typeof database !== 'undefined' && database.syncWithLocalStorage) {
                 database.syncWithLocalStorage();
             }
-            
+
             // Небольшая задержка для синхронизации
             await new Promise(resolve => setTimeout(resolve, 100));
-            
+
             // Закрываем модальное окно
             if (typeof modals !== 'undefined' && modals.hide) {
                 modals.hide('documentModal');
@@ -465,41 +480,41 @@ document.addEventListener('DOMContentLoaded', function() {
                     document.body.style.overflow = '';
                 }
             }
-            
+
             // Обновляем список документов с текущими фильтрами (или без фильтров)
             // Сбрасываем фильтры, чтобы показать все документы, включая новый
             currentFilters = {};
             currentPage = 1;
-            
+
             // Принудительно обновляем данные из кэша перед обновлением списка
             if (typeof database !== 'undefined' && database.syncWithLocalStorage) {
                 database.syncWithLocalStorage();
             }
-            
+
             // Небольшая задержка для гарантии синхронизации
             await new Promise(resolve => setTimeout(resolve, 200));
-            
+
             console.log('Обновление списка документов...');
-            
+
             // Получаем все документы напрямую для проверки
             const allDocs = await documentsManager.getAllDocuments();
             console.log('Все документы после создания:', allDocs);
             console.log('Количество документов:', allDocs.length);
-            
+
             await renderDocuments(currentFilters);
             applyFilterHighlights();
-            
+
             // Очищаем поле поиска
             const searchInput = document.querySelector('.search-input');
             if (searchInput) {
                 searchInput.value = '';
             }
-            
+
             // Обновляем счетчики
             await updateFilterCounts();
-            
+
             console.log('Список документов обновлен');
-            
+
             if (allDocs.length > 0) {
                 alert('Документ успешно создан!');
             } else {
@@ -535,7 +550,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    window.deleteDocument = async function(id) {
+    window.deleteDocument = async function (id) {
         if (confirm('Вы уверены, что хотите удалить этот документ?')) {
             await documentsManager.deleteDocument(id);
             await renderDocuments(currentFilters);
@@ -546,26 +561,54 @@ document.addEventListener('DOMContentLoaded', function() {
     // Отправить документ на согласование
     async function sendForApproval(docId) {
         console.log('Отправка документа на согласование:', docId);
-        
+
         // Проверяем, что approvalsManager доступен
         if (typeof approvalsManager === 'undefined') {
             alert('Ошибка: модуль согласований не загружен');
             return;
         }
-        
+
         // Получаем список пользователей для выбора согласующих
         console.log('Получение списка пользователей...');
         const users = auth.getUsers();
         console.log('Пользователи:', users);
-        
+
         if (!users || users.length === 0) {
             console.error('Не найдены пользователи');
             alert('Не найдены пользователи для согласования');
             return;
         }
-        
+
         // Создаем модальное окно для выбора согласующих
         createApprovalModal(docId, users);
+    }
+
+    // Отправить отклоненный документ на повторное согласование
+    async function resendForApproval(docId) {
+        console.log('Отправка отклоненного документа на повторное согласование:', docId);
+
+        // Проверяем статус документа
+        const doc = await documentsManager.getDocumentById(docId);
+        if (!doc) {
+            alert('Документ не найден');
+            return;
+        }
+
+        if (doc.status !== 'rejected') {
+            alert('Этот документ не был отклонен');
+            return;
+        }
+
+        // Подтверждение
+        if (!confirm('Вы уверены, что хотите отправить этот документ на повторное согласование? Документ будет изменен со статуса "Отклонен" на "Черновик".')) {
+            return;
+        }
+
+        // Изменяем статус документа на "draft" перед отправкой на согласование
+        await documentsManager.updateDocument(docId, { status: 'draft' });
+
+        // Отправляем на согласование
+        await sendForApproval(docId);
     }
 
     // Создать модальное окно для выбора согласующих
@@ -575,10 +618,22 @@ document.addEventListener('DOMContentLoaded', function() {
         if (existingModal) {
             existingModal.remove();
         }
-        
-        // Создаем список пользователей (исключаем текущего пользователя)
+
+        // Создаем список пользователей (исключаем текущего пользователя и обычных пользователей)
         const currentUser = auth.getCurrentUser();
-        let approvers = users.filter(u => u.user_id !== currentUser.user_id);
+        const isRegularUser = currentUser && currentUser.role === 'Пользователь';
+
+        // Обычные пользователи не могут инициировать согласования
+        if (isRegularUser) {
+            alert('Обычные пользователи не могут отправлять документы на согласование');
+            return;
+        }
+
+        // Исключаем текущего пользователя и обычных пользователей из списка согласующих
+        let approvers = users.filter(u =>
+            u.user_id !== currentUser.user_id &&
+            u.role !== 'Пользователь'
+        );
         const hasOtherApprovers = approvers.length > 0;
         if (!hasOtherApprovers) {
             approvers = [currentUser];
@@ -597,7 +652,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
                 `;
             }).join('');
-        
+
+        // Вычисляем минимальную дату (сегодня) и дату по умолчанию (через 5 дней)
+        const today = new Date();
+        const defaultDeadline = new Date();
+        defaultDeadline.setDate(today.getDate() + 5);
+        const minDate = today.toISOString().split('T')[0];
+        const defaultDate = defaultDeadline.toISOString().split('T')[0];
+
         const modalContent = `
             <form id="approvalForm">
                 <div class="form-group">
@@ -605,6 +667,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div id="approversList" style="max-height: 300px; overflow-y: auto; margin-top: 10px;">
                         ${approversList || '<p>Нет доступных согласующих</p>'}
                     </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="approvalDeadline">Срок согласования (дедлайн):</label>
+                    <input type="date" class="form-control" id="approvalDeadline" name="deadline" min="${minDate}" value="${defaultDate}" required>
+                    <small style="color: #777; font-size: 0.85rem;">Выберите дату, до которой должно быть завершено согласование</small>
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="approvalComment">Комментарий (необязательно):</label>
@@ -617,22 +684,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             </form>
         `;
-        
+
         if (typeof modals !== 'undefined' && modals.create) {
             try {
                 modals.create('approvalModal', 'Отправить на согласование', modalContent);
                 console.log('Модальное окно согласования создано');
-                
+                modals.show('approvalModal');
+
                 // Устанавливаем обработчики с задержкой, чтобы убедиться, что DOM готов
                 setTimeout(() => {
                     console.log('Настройка обработчиков для модального окна согласования...');
-                    
+
                     const modalElement = document.getElementById('approvalModal');
                     const form = document.getElementById('approvalForm');
                     const submitBtn = document.getElementById('submitApprovalBtn');
                     const cancelBtn = document.getElementById('cancelApprovalBtn');
                     const docIdField = document.getElementById('approvalDocId');
-                    
+
                     console.log('Элементы найдены:', {
                         modal: !!modalElement,
                         form: !!form,
@@ -640,109 +708,109 @@ document.addEventListener('DOMContentLoaded', function() {
                         cancelBtn: !!cancelBtn,
                         docIdField: !!docIdField
                     });
-                    
+
                     if (!modalElement) {
                         console.error('Модальное окно approvalModal не найдено');
                         return;
                     }
-                    
+
                     if (!form) {
                         console.error('Форма approvalForm не найдена');
                         return;
                     }
-                    
+
                     // Обработчик на форму (submit) - предотвращаем стандартную отправку
-                    form.addEventListener('submit', async function(e) {
+                    form.addEventListener('submit', async function (e) {
                         e.preventDefault();
                         e.stopPropagation();
                         console.log('=== ФОРМА ОТПРАВЛЕНА (submit event) ===');
-                        
+
                         const currentDocIdField = document.getElementById('approvalDocId');
                         const currentDocId = currentDocIdField ? parseInt(currentDocIdField.value) : parseInt(docId);
-                        
+
                         if (!currentDocId || isNaN(currentDocId)) {
                             alert('Ошибка: не указан ID документа');
                             return false;
                         }
-                        
+
                         try {
                             await submitApprovalInternal(currentDocId);
                         } catch (error) {
                             console.error('Ошибка в submitApprovalInternal (form submit):', error);
                             alert('Ошибка при отправке на согласование: ' + (error.message || error));
                         }
-                        
+
                         return false;
                     });
-                    
+
                     // Обработчик на кнопку отправки (click)
                     if (submitBtn) {
                         // Удаляем все предыдущие обработчики, клонируя элемент
                         const newSubmitBtn = submitBtn.cloneNode(true);
                         submitBtn.parentNode.replaceChild(newSubmitBtn, submitBtn);
-                        
+
                         // Устанавливаем обработчик клика
-                        newSubmitBtn.addEventListener('click', async function(e) {
+                        newSubmitBtn.addEventListener('click', async function (e) {
                             e.preventDefault();
                             e.stopPropagation();
                             e.stopImmediatePropagation();
-                            
+
                             console.log('=== КНОПКА ОТПРАВКИ НАЖАТА ===');
-                            
+
                             const currentDocIdField = document.getElementById('approvalDocId');
                             const currentDocId = currentDocIdField ? parseInt(currentDocIdField.value) : parseInt(docId);
                             console.log('ID документа для отправки:', currentDocId);
-                            
+
                             if (!currentDocId || isNaN(currentDocId)) {
                                 alert('Ошибка: не указан ID документа');
                                 return false;
                             }
-                            
+
                             try {
                                 await submitApprovalInternal(currentDocId);
                             } catch (error) {
                                 console.error('Ошибка в submitApprovalInternal:', error);
                                 alert('Ошибка при отправке на согласование: ' + (error.message || error));
                             }
-                            
+
                             return false;
                         });
-                        
+
                         // Также добавляем onclick как резервный вариант
-                        newSubmitBtn.onclick = async function(e) {
+                        newSubmitBtn.onclick = async function (e) {
                             if (e) {
                                 e.preventDefault();
                                 e.stopPropagation();
                             }
-                            
+
                             console.log('=== ONCLICK ОБРАБОТЧИК СРАБОТАЛ ===');
-                            
+
                             const currentDocIdField = document.getElementById('approvalDocId');
                             const currentDocId = currentDocIdField ? parseInt(currentDocIdField.value) : parseInt(docId);
-                            
+
                             if (!currentDocId || isNaN(currentDocId)) {
                                 alert('Ошибка: не указан ID документа');
                                 return false;
                             }
-                            
+
                             try {
                                 await submitApprovalInternal(currentDocId);
                             } catch (error) {
                                 console.error('Ошибка в submitApprovalInternal (onclick):', error);
                                 alert('Ошибка при отправке на согласование: ' + (error.message || error));
                             }
-                            
+
                             return false;
                         };
-                        
+
                         console.log('Обработчик на кнопку отправки установлен');
                     } else {
                         console.error('Кнопка submitApprovalBtn не найдена!');
                     }
-                    
+
                     // Обработчик на кнопку отмены
                     if (cancelBtn) {
-                        cancelBtn.addEventListener('click', function(e) {
+                        cancelBtn.addEventListener('click', function (e) {
                             e.preventDefault();
                             e.stopPropagation();
                             console.log('Отмена отправки на согласование');
@@ -759,24 +827,24 @@ document.addEventListener('DOMContentLoaded', function() {
                         });
                         console.log('Обработчик на кнопку отмены установлен');
                     }
-                    
+
                     // Делегирование на уровне модального окна (резервный вариант)
-                    modalElement.addEventListener('click', async function(e) {
+                    modalElement.addEventListener('click', async function (e) {
                         // Проверяем, что клик был по кнопке отправки или её дочерним элементам
                         const submitBtn = e.target.closest('#submitApprovalBtn');
                         if (submitBtn) {
                             e.preventDefault();
                             e.stopPropagation();
                             console.log('=== КЛИК ПО КНОПКЕ ОТПРАВКИ ЧЕРЕЗ ДЕЛЕГИРОВАНИЕ ===');
-                            
+
                             const currentDocIdField = document.getElementById('approvalDocId');
                             const currentDocId = currentDocIdField ? parseInt(currentDocIdField.value) : parseInt(docId);
-                            
+
                             if (!currentDocId || isNaN(currentDocId)) {
                                 alert('Ошибка: не указан ID документа');
                                 return;
                             }
-                            
+
                             try {
                                 await submitApprovalInternal(currentDocId);
                             } catch (error) {
@@ -785,7 +853,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             }
                             return;
                         }
-                        
+
                         // Проверяем, что клик был по кнопке отмены
                         const cancelBtn = e.target.closest('#cancelApprovalBtn');
                         if (cancelBtn) {
@@ -804,7 +872,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             return;
                         }
                     });
-                    
+
                     console.log('Все обработчики успешно установлены');
                 }, 300);
             } catch (error) {
@@ -816,20 +884,20 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Делаем функцию доступной глобально для тестирования
-    window.submitApproval = async function(docId) {
+    window.submitApproval = async function (docId) {
         return await submitApprovalInternal(docId);
     };
-    
+
     // Отправить на согласование
     async function submitApproval(docId) {
         return await submitApprovalInternal(docId);
     }
-    
+
     async function submitApprovalInternal(docId) {
         console.log('=== НАЧАЛО ОТПРАВКИ НА СОГЛАСОВАНИЕ ===');
         console.log('ID документа:', docId);
         console.log('Тип ID:', typeof docId);
-        
+
         try {
             // Проверяем доступность модулей ПЕРЕД всем остальным
             if (typeof approvalsManager === 'undefined') {
@@ -837,28 +905,28 @@ document.addEventListener('DOMContentLoaded', function() {
                 throw new Error('Модуль approvalsManager не загружен');
             }
             console.log('✓ approvalsManager доступен');
-            
+
             if (typeof documentsManager === 'undefined') {
                 console.error('Модуль documentsManager не загружен');
                 throw new Error('Модуль documentsManager не загружен');
             }
             console.log('✓ documentsManager доступен');
-            
+
             if (typeof database === 'undefined') {
                 console.error('Модуль database не загружен');
                 throw new Error('Модуль database не загружен');
             }
             console.log('✓ database доступен');
-            
+
             // Получаем выбранные согласующие
             const checkboxes = document.querySelectorAll('.approver-checkbox:checked');
             console.log('Найдено выбранных согласующих:', checkboxes.length);
-            
+
             if (checkboxes.length === 0) {
                 alert('Выберите хотя бы одного согласующего');
                 return;
             }
-            
+
             const steps = Array.from(checkboxes).map((cb, index) => {
                 const approverId = parseInt(cb.value);
                 const approverName = cb.getAttribute('data-user-name');
@@ -868,43 +936,58 @@ document.addEventListener('DOMContentLoaded', function() {
                     approverName: approverName
                 };
             });
-            
+
             console.log('Шаги согласования:', JSON.stringify(steps, null, 2));
-            
+
+            // Получаем дату дедлайна
+            const deadlineInput = document.getElementById('approvalDeadline');
+            let deadlineDate = null;
+            if (deadlineInput && deadlineInput.value) {
+                deadlineDate = new Date(deadlineInput.value);
+                deadlineDate.setHours(23, 59, 59, 999); // Устанавливаем конец дня
+                console.log('Выбранная дата дедлайна:', deadlineDate.toISOString());
+            } else {
+                // По умолчанию 5 дней от текущей даты
+                deadlineDate = new Date();
+                deadlineDate.setDate(deadlineDate.getDate() + 5);
+                console.log('Используется дедлайн по умолчанию (5 дней):', deadlineDate.toISOString());
+            }
+
             const comment = document.getElementById('approvalComment')?.value || '';
             console.log('Комментарий:', comment);
-            
+
             // Преобразуем docId в число, если нужно
             const numericDocId = typeof docId === 'string' ? parseInt(docId) : docId;
             console.log('Числовой ID документа:', numericDocId);
-            
+
             // Проверяем, что документ существует
             console.log('Получение документа из БД...');
             const doc = await documentsManager.getDocumentById(numericDocId);
             console.log('Документ получен:', doc);
-            
+
             if (!doc) {
                 console.error('Документ не найден с ID:', numericDocId);
                 throw new Error('Документ не найден');
             }
-            
+
             console.log('Документ найден:', doc.name, 'Статус:', doc.status);
-            
+
             // Создаем процесс согласования
             console.log('Вызов approvalsManager.createApproval...');
             console.log('Параметры:', {
                 documentId: numericDocId,
-                steps: steps
+                steps: steps,
+                deadline: deadlineDate.toISOString()
             });
-            
-            const approval = await approvalsManager.createApproval(numericDocId, steps);
-            
+
+            const approval = await approvalsManager.createApproval(numericDocId, steps, deadlineDate);
+
             console.log('Результат createApproval:', approval);
-            
+
             if (approval) {
                 console.log('✓✓✓ ПРОЦЕСС СОГЛАСОВАНИЯ УСПЕШНО СОЗДАН ✓✓✓');
                 console.log('Детали:', JSON.stringify(approval, null, 2));
-                
+
                 // Закрываем модальное окно
                 console.log('Закрытие модального окна...');
                 if (typeof modals !== 'undefined' && modals.hide) {
@@ -916,19 +999,19 @@ document.addEventListener('DOMContentLoaded', function() {
                         document.body.style.overflow = '';
                     }
                 }
-                
+
                 // Небольшая задержка для синхронизации
                 console.log('Ожидание синхронизации данных...');
                 await new Promise(resolve => setTimeout(resolve, 300));
-                
+
                 // Обновляем список документов
                 console.log('Обновление списка документов...');
                 await renderDocuments(currentFilters);
                 await updateFilterCounts();
-                
+
                 console.log('=== УСПЕШНОЕ ЗАВЕРШЕНИЕ ===');
                 alert('Документ успешно отправлен на согласование!');
-                
+
                 // Перенаправляем на страницу согласований через небольшую задержку
                 setTimeout(() => {
                     window.location.href = 'approvals.html';
@@ -965,7 +1048,7 @@ document.addEventListener('DOMContentLoaded', function() {
             };
 
             searchButton.addEventListener('click', performSearch);
-            searchInput.addEventListener('keypress', function(e) {
+            searchInput.addEventListener('keypress', function (e) {
                 if (e.key === 'Enter') {
                     performSearch();
                 }
@@ -976,17 +1059,17 @@ document.addEventListener('DOMContentLoaded', function() {
     function setupFilters() {
         const filterLinks = document.querySelectorAll('.filter-options a[data-filter-type]');
         filterLinks.forEach(link => {
-            link.addEventListener('click', async function(e) {
+            link.addEventListener('click', async function (e) {
                 e.preventDefault();
                 const type = this.dataset.filterType;
                 const value = this.dataset.filterValue;
-                
+
                 if (value === 'all') {
                     delete currentFilters[type];
                 } else {
                     currentFilters[type] = value;
                 }
-                
+
                 setFilterActive(type, value);
                 currentPage = 1;
                 await renderDocuments(currentFilters);
