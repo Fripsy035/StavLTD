@@ -1,4 +1,12 @@
 // Модуль работы с хранилищем в localStorage
+const DEFAULT_DEPARTMENTS = [
+    { department_id: 1, name: 'ПТО', description: 'Производственно-технический отдел' },
+    { department_id: 2, name: 'ИТ-отдел', description: 'Информационные технологии и поддержка пользователей' },
+    { department_id: 3, name: 'Бухгалтерия', description: 'Финансовый учет и отчетность' },
+    { department_id: 4, name: 'Отдел продаж', description: 'Коммерческий блок и работа с клиентами' },
+    { department_id: 5, name: 'Отдел снабжения', description: 'Закупки и логистика материалов' }
+];
+
 const database = {
     _storageKey: 'sed_database',
     _data: null,
@@ -116,18 +124,22 @@ const database = {
     },
 
     _loadFromStorage(forceDefaults = false) {
+        let loaded = false;
         if (!forceDefaults) {
             const raw = localStorage.getItem(this._storageKey);
             if (raw) {
                 try {
                     this._data = JSON.parse(raw);
-                    return;
+                    loaded = true;
                 } catch (error) {
                     console.error('Ошибка чтения локальных данных:', error);
                 }
             }
         }
-        this._data = this._getDefaultData();
+        if (!loaded) {
+            this._data = this._getDefaultData();
+        }
+        this._ensureDefaultData();
         this._saveToStorage();
     },
 
@@ -139,11 +151,35 @@ const database = {
         localStorage.setItem('database_updated', new Date().toISOString());
     },
 
+    _ensureDefaultData() {
+        if (!this._data) return;
+        let changed = false;
+        if (!Array.isArray(this._data.departments)) {
+            this._data.departments = [];
+        }
+        const existing = this._data.departments;
+        const idField = this._getIdField('departments');
+        let maxId = existing.reduce((max, dep) => Math.max(max, dep[idField] || 0), 0);
+        DEFAULT_DEPARTMENTS.forEach(defaultDep => {
+            if (!existing.some(dep => dep.name === defaultDep.name)) {
+                maxId += 1;
+                const newDep = {
+                    ...defaultDep,
+                    [idField]: defaultDep[idField] || maxId
+                };
+                existing.push(newDep);
+                changed = true;
+            }
+        });
+        if (changed) {
+            this._data.departments = existing;
+            console.info('Добавлены отсутствующие отделы по умолчанию');
+        }
+    },
+
     _getDefaultData() {
         return {
-            departments: [
-                { department_id: 1, name: 'ПТО', description: 'Производственно-технический отдел' }
-            ],
+            departments: DEFAULT_DEPARTMENTS.map(dep => ({ ...dep })),
             document_types: [
                 { type_id: 1, name: 'Технические документы', code: 'technical', description: 'Чертежи, схемы, спецификации, технические отчеты' }
             ],
@@ -157,10 +193,11 @@ const database = {
             users: [
                 {
                     user_id: 1,
-                    full_name: 'Иванов Алексей Петрович',
+                    full_name: 'Пророков Максим Евгеньевич',
                     position: 'Главный инженер',
                     department_id: 1,
                     email: 'ivanov@stav-ltd.ru',
+                    phone: '+7 (928) 555-44-33',
                     role: 'admin',
                     is_active: true
                 }

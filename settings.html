@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>СЭД-СТАВ | Настройки</title>
     <link rel="stylesheet" href="style/styles.css">
+    <link rel="stylesheet" href="style/normalize.css">
 </head>
 
 <body>
@@ -125,39 +126,7 @@
                                 <div class="settings-card-header">
                                     <h3 class="settings-card-title">Настройки процессов согласования</h3>
                                 </div>
-                                <form class="settings-form">
-                                    <div class="form-group">
-                                        <label class="form-label" for="default-approval-time">Срок согласования по
-                                            умолчанию (дни)</label>
-                                        <input type="number" class="form-control" id="default-approval-time" value="5"
-                                            min="1" max="30">
-                                        <div class="form-text">Количество рабочих дней для согласования документа</div>
-                                    </div>
-
-                                    <div class="form-group">
-                                        <label class="form-label" for="reminder-days">Напоминание за (дни)</label>
-                                        <input type="number" class="form-control" id="reminder-days" value="2" min="1"
-                                            max="10">
-                                        <div class="form-text">За сколько дней до окончания срока отправлять напоминание
-                                        </div>
-                                    </div>
-
-                                    <div class="form-group">
-                                        <div class="form-check">
-                                            <input type="checkbox" class="form-check-input" id="auto-escalation"
-                                                checked>
-                                            <label class="form-check-label" for="auto-escalation">Автоматическая
-                                                эскалация просроченных задач</label>
-                                        </div>
-                                        <div class="form-check">
-                                            <input type="checkbox" class="form-check-input" id="parallel-approval">
-                                            <label class="form-check-label" for="parallel-approval">Разрешить
-                                                параллельное согласование</label>
-                                        </div>
-                                    </div>
-
-                                    <button type="button" class="btn btn-primary">Сохранить настройки</button>
-                                </form>
+                                <div class="settings-placeholder">В разработке</div>
                             </div>
                         </div>
 
@@ -167,44 +136,7 @@
                                 <div class="settings-card-header">
                                     <h3 class="settings-card-title">Настройки уведомлений</h3>
                                 </div>
-                                <form class="settings-form">
-                                    <div class="form-group">
-                                        <div class="form-check">
-                                            <input type="checkbox" class="form-check-input" id="notify-new-document"
-                                                checked>
-                                            <label class="form-check-label" for="notify-new-document">Уведомлять о новых
-                                                документах</label>
-                                        </div>
-                                        <div class="form-check">
-                                            <input type="checkbox" class="form-check-input" id="notify-approval"
-                                                checked>
-                                            <label class="form-check-label" for="notify-approval">Уведомлять о задачах
-                                                согласования</label>
-                                        </div>
-                                        <div class="form-check">
-                                            <input type="checkbox" class="form-check-input" id="notify-overdue" checked>
-                                            <label class="form-check-label" for="notify-overdue">Уведомлять о
-                                                просроченных задачах</label>
-                                        </div>
-                                        <div class="form-check">
-                                            <input type="checkbox" class="form-check-input" id="notify-comments">
-                                            <label class="form-check-label" for="notify-comments">Уведомлять о новых
-                                                комментариях</label>
-                                        </div>
-                                    </div>
-
-                                    <div class="form-group">
-                                        <label class="form-label" for="notification-frequency">Частота уведомлений по
-                                            email</label>
-                                        <select class="form-control" id="notification-frequency">
-                                            <option value="immediately">Мгновенно</option>
-                                            <option value="hourly">Каждый час</option>
-                                            <option value="daily">Ежедневно</option>
-                                        </select>
-                                    </div>
-
-                                    <button type="button" class="btn btn-primary">Сохранить настройки</button>
-                                </form>
+                                <div class="settings-placeholder">В разработке</div>
                             </div>
                         </div>
 
@@ -214,45 +146,7 @@
                                 <div class="settings-card-header">
                                     <h3 class="settings-card-title">Настройки безопасности</h3>
                                 </div>
-                                <form class="settings-form">
-                                    <div class="form-group">
-                                        <label class="form-label" for="password-policy">Политика паролей</label>
-                                        <select class="form-control" id="password-policy">
-                                            <option value="simple">Простая (минимум 6 символов)</option>
-                                            <option value="medium" selected>Средняя (минимум 8 символов, буквы и цифры)</option>
-                                            <option value="strong">Строгая (минимум 12 символов, буквы, цифры, спецсимволы)</option>
-                                        </select>
-                                    </div>
-
-                                    <div class="form-group">
-                                        <label class="form-label" for="session-timeout">Таймаут сессии (минуты)</label>
-                                        <input type="number" class="form-control" id="session-timeout" value="30" min="5" max="480">
-                                        <div class="form-text">Время неактивности до автоматического выхода из системы</div>
-                                    </div>
-
-                                    <div class="form-group">
-                                        <div class="form-check">
-                                            <input type="checkbox" class="form-check-input" id="require-2fa">
-                                            <label class="form-check-label" for="require-2fa">Требовать двухфакторную аутентификацию</label>
-                                        </div>
-                                        <div class="form-check">
-                                            <input type="checkbox" class="form-check-input" id="log-login-attempts" checked>
-                                            <label class="form-check-label" for="log-login-attempts">Логировать попытки входа</label>
-                                        </div>
-                                        <div class="form-check">
-                                            <input type="checkbox" class="form-check-input" id="block-after-failed" checked>
-                                            <label class="form-check-label" for="block-after-failed">Блокировать после 5 неудачных попыток</label>
-                                        </div>
-                                    </div>
-
-                                    <div class="form-group">
-                                        <label class="form-label" for="ip-whitelist">Белый список IP-адресов (по одному на строку)</label>
-                                        <textarea class="form-control" id="ip-whitelist" rows="4" placeholder="192.168.1.1&#10;10.0.0.1"></textarea>
-                                        <div class="form-text">Оставьте пустым, чтобы разрешить доступ с любых IP-адресов</div>
-                                    </div>
-
-                                    <button type="button" class="btn btn-primary" onclick="saveSecuritySettings()">Сохранить настройки</button>
-                                </form>
+                                <div class="settings-placeholder">В разработке</div>
                             </div>
                         </div>
 
@@ -262,52 +156,7 @@
                                 <div class="settings-card-header">
                                     <h3 class="settings-card-title">Резервное копирование</h3>
                                 </div>
-                                <form class="settings-form">
-                                    <div class="form-group">
-                                        <label class="form-label" for="backup-frequency">Частота автоматического резервного копирования</label>
-                                        <select class="form-control" id="backup-frequency">
-                                            <option value="daily" selected>Ежедневно</option>
-                                            <option value="weekly">Еженедельно</option>
-                                            <option value="monthly">Ежемесячно</option>
-                                            <option value="manual">Только вручную</option>
-                                        </select>
-                                    </div>
-
-                                    <div class="form-group">
-                                        <label class="form-label" for="backup-time">Время резервного копирования</label>
-                                        <input type="time" class="form-control" id="backup-time" value="02:00">
-                                    </div>
-
-                                    <div class="form-group">
-                                        <label class="form-label" for="backup-retention">Хранить резервные копии (дней)</label>
-                                        <input type="number" class="form-control" id="backup-retention" value="30" min="1" max="365">
-                                        <div class="form-text">Количество дней, в течение которых хранятся резервные копии</div>
-                                    </div>
-
-                                    <div class="form-group">
-                                        <div class="form-check">
-                                            <input type="checkbox" class="form-check-input" id="backup-compress" checked>
-                                            <label class="form-check-label" for="backup-compress">Сжимать резервные копии</label>
-                                        </div>
-                                        <div class="form-check">
-                                            <input type="checkbox" class="form-check-input" id="backup-encrypt">
-                                            <label class="form-check-label" for="backup-encrypt">Шифровать резервные копии</label>
-                                        </div>
-                                    </div>
-
-                                    <div class="form-group">
-                                        <label class="form-label">Последние резервные копии</label>
-                                        <div class="backup-list" id="backup-list">
-                                            <p style="color: #777; font-style: italic;">Резервные копии еще не создавались</p>
-                                        </div>
-                                    </div>
-
-                                    <div class="form-actions" style="display: flex; gap: 10px;">
-                                        <button type="button" class="btn btn-primary" onclick="createBackup()">Создать резервную копию</button>
-                                        <button type="button" class="btn btn-secondary" onclick="restoreBackup()">Восстановить из копии</button>
-                                        <button type="button" class="btn btn-primary" onclick="saveBackupSettings()">Сохранить настройки</button>
-                                    </div>
-                                </form>
+                                <div class="settings-placeholder">В разработке</div>
                             </div>
                         </div>
 
@@ -317,68 +166,7 @@
                                 <div class="settings-card-header">
                                     <h3 class="settings-card-title">Системные настройки</h3>
                                 </div>
-                                <form class="settings-form">
-                                    <div class="form-group">
-                                        <label class="form-label" for="system-name">Название системы</label>
-                                        <input type="text" class="form-control" id="system-name" value="СЭД-СТАВ">
-                                    </div>
-
-                                    <div class="form-group">
-                                        <label class="form-label" for="max-file-size">Максимальный размер файла (МБ)</label>
-                                        <input type="number" class="form-control" id="max-file-size" value="50" min="1" max="500">
-                                        <div class="form-text">Максимальный размер файла, который можно загрузить в систему</div>
-                                    </div>
-
-                                    <div class="form-group">
-                                        <label class="form-label" for="allowed-file-types">Разрешенные типы файлов</label>
-                                        <input type="text" class="form-control" id="allowed-file-types" value="pdf,doc,docx,xls,xlsx,ppt,pptx,jpg,jpeg,png">
-                                        <div class="form-text">Список разрешенных расширений файлов через запятую</div>
-                                    </div>
-
-                                    <div class="form-group">
-                                        <label class="form-label" for="max-documents-per-user">Максимум документов на пользователя</label>
-                                        <input type="number" class="form-control" id="max-documents-per-user" value="1000" min="1">
-                                        <div class="form-text">Максимальное количество документов, которое может создать один пользователь</div>
-                                    </div>
-
-                                    <div class="form-group">
-                                        <div class="form-check">
-                                            <input type="checkbox" class="form-check-input" id="enable-versioning" checked>
-                                            <label class="form-check-label" for="enable-versioning">Включить версионирование документов</label>
-                                        </div>
-                                        <div class="form-check">
-                                            <input type="checkbox" class="form-check-input" id="enable-audit-log" checked>
-                                            <label class="form-check-label" for="enable-audit-log">Вести журнал аудита</label>
-                                        </div>
-                                        <div class="form-check">
-                                            <input type="checkbox" class="form-check-input" id="enable-maintenance-mode">
-                                            <label class="form-check-label" for="enable-maintenance-mode">Режим обслуживания</label>
-                                        </div>
-                                    </div>
-
-                                    <div class="form-group">
-                                        <label class="form-label" for="log-level">Уровень логирования</label>
-                                        <select class="form-control" id="log-level">
-                                            <option value="error">Только ошибки</option>
-                                            <option value="warning" selected>Предупреждения и ошибки</option>
-                                            <option value="info">Информация, предупреждения и ошибки</option>
-                                            <option value="debug">Все события (отладка)</option>
-                                        </select>
-                                    </div>
-
-                                    <div class="form-group">
-                                        <label class="form-label">Информация о системе</label>
-                                        <div class="system-info" style="background: #f5f5f5; padding: 15px; border-radius: 4px;">
-                                            <p><strong>Версия системы:</strong> 1.0.0</p>
-                                            <p><strong>Дата установки:</strong> <span id="install-date">-</span></p>
-                                            <p><strong>Последнее обновление:</strong> <span id="last-update">-</span></p>
-                                            <p><strong>Количество пользователей:</strong> <span id="total-users">-</span></p>
-                                            <p><strong>Количество документов:</strong> <span id="total-documents">-</span></p>
-                                        </div>
-                                    </div>
-
-                                    <button type="button" class="btn btn-primary" onclick="saveSystemSettings()">Сохранить настройки</button>
-                                </form>
+                                <div class="settings-placeholder">В разработке</div>
                             </div>
                         </div>
                     </main>

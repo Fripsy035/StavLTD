@@ -198,14 +198,14 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         container.innerHTML = pageDocuments.map(doc => {
-            // Для обычных пользователей показываем только кнопку "Скачать"
+            const canEdit = doc.status !== 'review';
             const actions = isRegularUser
                 ? `<button class="btn btn-download" data-doc-id="${doc.id}">Скачать</button>`
                 : `
                     <button class="btn btn-download" data-doc-id="${doc.id}">Скачать</button>
-                    <button class="btn btn-edit" data-doc-id="${doc.id}">Редактировать</button>
+                    ${canEdit ? `<button class="btn btn-edit" data-doc-id="${doc.id}">Редактировать</button>` : ''}
                     ${doc.status === 'draft' ? `<button class="btn btn-primary btn-send-approval" data-doc-id="${doc.id}" title="Отправить на согласование">На согласование</button>` : ''}
-                    ${doc.status === 'rejected' ? `<button class="btn btn-primary btn-resend-approval" data-doc-id="${doc.id}" title="Отправить на повторное согласование">Повторно</button>` : ''}
+                    ${doc.status === 'rejected' ? `<button class="btn btn-primary btn-resend-approval" data-doc-id="${doc.id}" title="Отправить на повторное согласование">Согласовать повторно</button>` : ''}
                     <button class="btn btn-danger" data-doc-id="${doc.id}" onclick="deleteDocument(${doc.id})">Удалить</button>
                 `;
 
@@ -283,7 +283,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         showModal();
                     } else {
                         console.error('Не удалось создать модальное окно');
-                        alert('Ошибка: не удалось создать модальное окно. Проверьте консоль браузера.');
+                        notify.error('Не удалось создать модальное окно. Проверьте консоль браузера.');
                     }
                 }, 500);
             } else {
@@ -314,7 +314,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     document.body.style.overflow = 'hidden';
                     console.log('Модальное окно открыто напрямую');
                 } else {
-                    alert('Ошибка: модальное окно не найдено');
+                    notify.error('Модальное окно не найдено');
                 }
             }
         }
@@ -429,7 +429,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const form = document.getElementById('documentForm');
         if (!form) {
             console.error('Форма не найдена');
-            alert('Ошибка: форма не найдена');
+            notify.error('Форма документа не найдена');
             return;
         }
 
@@ -440,7 +440,7 @@ document.addEventListener('DOMContentLoaded', function () {
             name: formData.get('name'),
             category: formData.get('category'),
             description: formData.get('description'),
-            fileUrl: formData.get('fileUrl')
+            fileUrl: (formData.get('fileUrl') || '').trim()
         };
 
         console.log('Данные документа:', documentData);
@@ -458,7 +458,7 @@ document.addEventListener('DOMContentLoaded', function () {
             console.log('Документ сохранен:', savedDoc);
 
             if (!savedDoc) {
-                alert('Ошибка: документ не был сохранен');
+                notify.error('Документ не был сохранен');
                 return;
             }
 
@@ -516,19 +516,24 @@ document.addEventListener('DOMContentLoaded', function () {
             console.log('Список документов обновлен');
 
             if (allDocs.length > 0) {
-                alert('Документ успешно создан!');
+                notify.success(docId ? 'Документ обновлен' : 'Документ успешно создан');
             } else {
-                alert('Документ создан, но не отображается. Проверьте консоль браузера.');
+                notify.error('Документ создан, но не отображается. Проверьте консоль браузера.');
             }
         } catch (error) {
             console.error('Ошибка при сохранении документа:', error);
-            alert('Ошибка при сохранении документа: ' + error.message);
+            notify.error('Ошибка при сохранении документа: ' + (error.message || error));
         }
     }
 
     async function editDocument(id) {
         const doc = await documentsManager.getDocumentById(id);
         if (!doc) return;
+
+        if (doc.status === 'review') {
+            notify.error('Документ находится на согласовании и недоступен для редактирования');
+            return;
+        }
 
         document.getElementById('docId').value = doc.id;
         document.getElementById('docName').value = doc.name;
@@ -541,12 +546,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
     async function downloadDocument(id) {
         const doc = await documentsManager.getDocumentById(id);
-        if (!doc) return;
+        if (!doc) {
+            notify.error('Документ не найден');
+            return;
+        }
 
         if (doc.fileUrl) {
             window.open(doc.fileUrl, '_blank');
         } else {
-            alert('Файл не прикреплен к документу');
+            notify.error('К документу не прикреплен файл');
         }
     }
 
@@ -564,7 +572,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Проверяем, что approvalsManager доступен
         if (typeof approvalsManager === 'undefined') {
-            alert('Ошибка: модуль согласований не загружен');
+            notify.error('Модуль согласований не загружен');
             return;
         }
 
@@ -575,7 +583,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (!users || users.length === 0) {
             console.error('Не найдены пользователи');
-            alert('Не найдены пользователи для согласования');
+            notify.error('Не найдены пользователи для согласования');
             return;
         }
 
@@ -590,12 +598,12 @@ document.addEventListener('DOMContentLoaded', function () {
         // Проверяем статус документа
         const doc = await documentsManager.getDocumentById(docId);
         if (!doc) {
-            alert('Документ не найден');
+            notify.error('Документ не найден');
             return;
         }
 
         if (doc.status !== 'rejected') {
-            alert('Этот документ не был отклонен');
+            notify.error('Этот документ не был отклонен');
             return;
         }
 
@@ -625,7 +633,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Обычные пользователи не могут инициировать согласования
         if (isRegularUser) {
-            alert('Обычные пользователи не могут отправлять документы на согласование');
+            notify.error('Обычные пользователи не могут отправлять документы на согласование');
             return;
         }
 
@@ -729,16 +737,16 @@ document.addEventListener('DOMContentLoaded', function () {
                         const currentDocId = currentDocIdField ? parseInt(currentDocIdField.value) : parseInt(docId);
 
                         if (!currentDocId || isNaN(currentDocId)) {
-                            alert('Ошибка: не указан ID документа');
+                            notify.error('Не указан документ');
                             return false;
                         }
 
                         try {
                             await submitApprovalInternal(currentDocId);
-                        } catch (error) {
-                            console.error('Ошибка в submitApprovalInternal (form submit):', error);
-                            alert('Ошибка при отправке на согласование: ' + (error.message || error));
-                        }
+                            } catch (error) {
+                                console.error('Ошибка в submitApprovalInternal (form submit):', error);
+                                notify.error('Ошибка при отправке на согласование: ' + (error.message || error));
+                            }
 
                         return false;
                     });
@@ -762,7 +770,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             console.log('ID документа для отправки:', currentDocId);
 
                             if (!currentDocId || isNaN(currentDocId)) {
-                                alert('Ошибка: не указан ID документа');
+                                notify.error('Не указан документ');
                                 return false;
                             }
 
@@ -770,7 +778,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                 await submitApprovalInternal(currentDocId);
                             } catch (error) {
                                 console.error('Ошибка в submitApprovalInternal:', error);
-                                alert('Ошибка при отправке на согласование: ' + (error.message || error));
+                                notify.error('Ошибка при отправке на согласование: ' + (error.message || error));
                             }
 
                             return false;
@@ -789,7 +797,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             const currentDocId = currentDocIdField ? parseInt(currentDocIdField.value) : parseInt(docId);
 
                             if (!currentDocId || isNaN(currentDocId)) {
-                                alert('Ошибка: не указан ID документа');
+                                notify.error('Не указан документ');
                                 return false;
                             }
 
@@ -797,7 +805,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                 await submitApprovalInternal(currentDocId);
                             } catch (error) {
                                 console.error('Ошибка в submitApprovalInternal (onclick):', error);
-                                alert('Ошибка при отправке на согласование: ' + (error.message || error));
+                                notify.error('Ошибка при отправке на согласование: ' + (error.message || error));
                             }
 
                             return false;
@@ -841,7 +849,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             const currentDocId = currentDocIdField ? parseInt(currentDocIdField.value) : parseInt(docId);
 
                             if (!currentDocId || isNaN(currentDocId)) {
-                                alert('Ошибка: не указан ID документа');
+                                notify.error('Не указан документ');
                                 return;
                             }
 
@@ -849,7 +857,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                 await submitApprovalInternal(currentDocId);
                             } catch (error) {
                                 console.error('Ошибка в submitApprovalInternal (делегирование):', error);
-                                alert('Ошибка при отправке на согласование: ' + (error.message || error));
+                                notify.error('Ошибка при отправке на согласование: ' + (error.message || error));
                             }
                             return;
                         }
@@ -923,7 +931,7 @@ document.addEventListener('DOMContentLoaded', function () {
             console.log('Найдено выбранных согласующих:', checkboxes.length);
 
             if (checkboxes.length === 0) {
-                alert('Выберите хотя бы одного согласующего');
+                notify.error('Выберите хотя бы одного согласующего');
                 return;
             }
 
@@ -1010,7 +1018,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 await updateFilterCounts();
 
                 console.log('=== УСПЕШНОЕ ЗАВЕРШЕНИЕ ===');
-                alert('Документ успешно отправлен на согласование!');
+                notify.success('Документ успешно отправлен на согласование');
 
                 // Перенаправляем на страницу согласований через небольшую задержку
                 setTimeout(() => {
@@ -1019,7 +1027,7 @@ document.addEventListener('DOMContentLoaded', function () {
             } else {
                 console.error('✗✗✗ createApproval вернула null ✗✗✗');
                 console.error('Это означает, что процесс согласования не был создан');
-                alert('Ошибка: не удалось создать процесс согласования. Проверьте консоль браузера для деталей.');
+                notify.error('Не удалось создать процесс согласования. Проверьте консоль.');
             }
         } catch (error) {
             console.error('✗✗✗ КРИТИЧЕСКАЯ ОШИБКА ✗✗✗');
@@ -1027,7 +1035,7 @@ document.addEventListener('DOMContentLoaded', function () {
             console.error('Тип ошибки:', error.constructor.name);
             console.error('Сообщение:', error.message);
             console.error('Стек ошибки:', error.stack);
-            alert('Ошибка при отправке на согласование: ' + (error.message || error));
+            notify.error('Ошибка при отправке на согласование: ' + (error.message || error));
         }
     }
 

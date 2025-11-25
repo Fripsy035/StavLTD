@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>СЭД-СТАВ | Профиль пользователя</title>
     <link rel="stylesheet" href="style/styles.css">
+    <link rel="stylesheet" href="style/normalize.css">
 </head>
 
 <body>
@@ -59,12 +60,21 @@
                     </div>
 
                     <div class="profile-tabs">
-                        <div class="tab active" data-tab="personal">Личные данные</div>
+                        <div class="tab active" data-tab="activity">Активность</div>
+                        <div class="tab" data-tab="personal">Личные данные</div>
                         <div class="tab" data-tab="security">Безопасность</div>
-                        <div class="tab" data-tab="activity">Активность</div>
                     </div>
 
-                    <div class="tab-content active" id="personal">
+                    <div class="tab-content active" id="activity">
+                        <div class="settings-card">
+                            <div class="settings-card-header">
+                                <h3 class="settings-card-title">История активности</h3>
+                            </div>
+                            <div class="activity-list" id="activityList"></div>
+                        </div>
+                    </div>
+
+                    <div class="tab-content" id="personal">
                         <div class="settings-card">
                             <div class="settings-card-header">
                                 <h3 class="settings-card-title">Личная информация</h3>
@@ -82,19 +92,24 @@
 
                                 <div class="form-group">
                                     <label class="form-label" for="phone">Телефон</label>
-                                    <input type="tel" class="form-control" id="phone" name="phone" placeholder="+7 (___) ___-__-__">
+                                    <input type="tel" class="form-control" id="phone" name="phone"
+                                        placeholder="+7 (___) ___-__-__" data-phone-mask="true" />
                                 </div>
 
                                 <div class="form-group">
                                     <label class="form-label" for="department">Отдел</label>
-                                    <input type="text" class="form-control" id="department" name="department" readonly disabled>
-                                    <div class="form-text">Отдел можно изменить только через настройки (только для администратора)</div>
+                                    <input type="text" class="form-control" id="department" name="department" readonly
+                                        disabled>
+                                    <div class="form-text">Отдел можно изменить только через настройки (только для
+                                        администратора)</div>
                                 </div>
 
                                 <div class="form-group">
                                     <label class="form-label" for="position">Должность</label>
-                                    <input type="text" class="form-control" id="position" name="position" readonly disabled>
-                                    <div class="form-text">Должность можно изменить только через настройки (только для администратора)</div>
+                                    <input type="text" class="form-control" id="position" name="position" readonly
+                                        disabled>
+                                    <div class="form-text">Должность можно изменить только через настройки (только для
+                                        администратора)</div>
                                 </div>
 
                                 <button type="submit" class="btn btn-primary">Сохранить изменения</button>
@@ -110,18 +125,22 @@
                             <form class="settings-form" id="passwordForm">
                                 <div class="form-group">
                                     <label class="form-label" for="currentPassword">Текущий пароль</label>
-                                    <input type="password" class="form-control" id="currentPassword" name="currentPassword" required>
+                                    <input type="password" class="form-control" id="currentPassword"
+                                        name="currentPassword" required>
                                 </div>
 
                                 <div class="form-group">
                                     <label class="form-label" for="newPassword">Новый пароль</label>
-                                    <input type="password" class="form-control" id="newPassword" name="newPassword" required minlength="6">
+                                    <input type="password" class="form-control" id="newPassword" name="newPassword"
+                                        required minlength="6">
                                     <div class="form-text">Минимум 6 символов</div>
                                 </div>
 
                                 <div class="form-group">
-                                    <label class="form-label" for="confirmNewPassword">Подтверждение нового пароля</label>
-                                    <input type="password" class="form-control" id="confirmNewPassword" name="confirmNewPassword" required>
+                                    <label class="form-label" for="confirmNewPassword">Подтверждение нового
+                                        пароля</label>
+                                    <input type="password" class="form-control" id="confirmNewPassword"
+                                        name="confirmNewPassword" required>
                                 </div>
 
                                 <button type="submit" class="btn btn-primary">Изменить пароль</button>
@@ -129,43 +148,7 @@
                         </div>
                     </div>
 
-                    <div class="tab-content" id="activity">
-                        <div class="settings-card">
-                            <div class="settings-card-header">
-                                <h3 class="settings-card-title">История активности</h3>
-                            </div>
-                            <div class="activity-list">
-                                <div class="activity-item">
-                                    <div class="activity-icon">📄</div>
-                                    <div class="activity-content">
-                                        <div class="activity-title">Создан документ "Техническое задание проект Гамма"</div>
-                                        <div class="activity-date">12.10.2025 14:30</div>
-                                    </div>
-                                </div>
-                                <div class="activity-item">
-                                    <div class="activity-icon">✓</div>
-                                    <div class="activity-content">
-                                        <div class="activity-title">Согласован документ "Отчет по проекту Альфа"</div>
-                                        <div class="activity-date">10.10.2025 11:15</div>
-                                    </div>
-                                </div>
-                                <div class="activity-item">
-                                    <div class="activity-icon">👤</div>
-                                    <div class="activity-content">
-                                        <div class="activity-title">Вход в систему</div>
-                                        <div class="activity-date">08.10.2025 09:00</div>
-                                    </div>
-                                </div>
-                                <div class="activity-item">
-                                    <div class="activity-icon">✏️</div>
-                                    <div class="activity-content">
-                                        <div class="activity-title">Изменен профиль</div>
-                                        <div class="activity-date">05.10.2025 16:45</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+
                 </div>
             </div>
         </div>
@@ -185,7 +168,7 @@
     <script src="script/access-control.js"></script>
     <script>
         // Загрузка данных пользователя
-        document.addEventListener('DOMContentLoaded', async function() {
+        document.addEventListener('DOMContentLoaded', async function () {
             // Ждем загрузки модулей
             if (typeof database === 'undefined' || typeof auth === 'undefined') {
                 await new Promise(resolve => {
@@ -204,29 +187,35 @@
 
             await database.init();
             const user = auth.getCurrentUser();
-            
+
             if (user) {
                 // Обновление информации в профиле
                 const fullName = user.fullName || user.name || 'Пользователь';
                 document.getElementById('profileName').textContent = fullName;
                 document.getElementById('profileEmail').textContent = user.email || '';
                 document.getElementById('profileRole').textContent = user.role || 'Пользователь';
-                
+
                 // Обновление аватара
                 const initials = auth.getInitials(fullName);
                 document.getElementById('profileAvatar').textContent = initials;
-                
+
                 // Обновление в header
                 document.getElementById('userName').textContent = fullName;
                 document.getElementById('userRole').textContent = user.role || 'Пользователь';
                 document.getElementById('userAvatar').textContent = initials;
-                
+
                 // Заполнение формы
                 document.getElementById('fullName').value = fullName;
                 document.getElementById('email').value = user.email || '';
-                document.getElementById('phone').value = user.phone || '';
+                const phoneInput = document.getElementById('phone');
+                phoneInput.value = user.phone || '';
+                if (window.phoneMask) {
+                    window.phoneMask.applyTo(phoneInput);
+                }
                 document.getElementById('department').value = user.department || '';
                 document.getElementById('position').value = user.position || '';
+
+                renderActivity(user);
             } else {
                 // Если пользователь не авторизован, перенаправляем на страницу входа
                 window.location.href = 'login.html';
@@ -235,33 +224,38 @@
 
         // Валидация номера телефона
         function validatePhone(phone) {
-            if (!phone) return true; // Телефон не обязателен в профиле
-            // Удаляем все пробелы, скобки, дефисы и плюсы для проверки
+            if (window.validators && window.validators.validatePhone) {
+                return window.validators.validatePhone(phone, { allowEmpty: true });
+            }
+            if (!phone) return true;
             const cleaned = phone.replace(/[\s\-\(\)\+]/g, '');
-            // Проверяем, что осталось только цифры и длина от 10 до 11 цифр
-            // Форматы: +7 (999) 123-45-67, 89991234567, +79991234567
             const phoneRegex = /^(\+?7|8)?\d{10}$/;
             return phoneRegex.test(cleaned);
         }
 
         // Обработка формы личных данных
-        document.getElementById('personalForm').addEventListener('submit', async function(e) {
+        document.getElementById('personalForm').addEventListener('submit', async function (e) {
             e.preventDefault();
             const user = auth.getCurrentUser();
             if (user) {
                 const fullName = document.getElementById('fullName').value.trim();
                 const email = document.getElementById('email').value.trim();
                 const phone = document.getElementById('phone').value.trim();
-                
+
                 // Валидация
                 if (!fullName || !email) {
-                    alert('Пожалуйста, заполните все обязательные поля (ФИО, Email)');
+                    notify.error('Пожалуйста, заполните все обязательные поля (ФИО и Email)');
+                    return;
+                }
+
+                if (!window.validators || !window.validators.validateEmail(email)) {
+                    notify.error('Пожалуйста, введите корректный email.');
                     return;
                 }
 
                 // Валидация телефона (если указан)
                 if (phone && !validatePhone(phone)) {
-                    alert('Неверный формат номера телефона. Используйте формат: +7 (999) 123-45-67 или 89991234567');
+                    notify.error('Неверный формат номера телефона. Используйте формат: +7 (999) 123-45-67 или 89991234567');
                     return;
                 }
 
@@ -273,24 +267,24 @@
                     phone: phone
                     // department и position не обновляем - они только для чтения
                 };
-                
+
                 const result = await auth.updateUser(updatedUser);
-                
+
                 if (result) {
                     // Обновление отображения
                     document.getElementById('profileName').textContent = updatedUser.fullName;
                     document.getElementById('profileEmail').textContent = updatedUser.email;
                     const initials = auth.getInitials(updatedUser.fullName);
                     document.getElementById('profileAvatar').textContent = initials;
-                    
+
                     // Обновление в header
                     document.getElementById('userName').textContent = updatedUser.fullName;
                     const headerInitials = auth.getInitials(updatedUser.fullName);
                     document.getElementById('userAvatar').textContent = headerInitials;
-                    
-                    alert('Данные успешно сохранены!');
+
+                    notify.success('Данные успешно сохранены');
                 } else {
-                    alert('Ошибка при сохранении данных');
+                    notify.error('Ошибка при сохранении данных');
                 }
             }
         });
@@ -300,7 +294,7 @@
         const tabContents = document.querySelectorAll('.tab-content');
 
         tabs.forEach(tab => {
-            tab.addEventListener('click', function() {
+            tab.addEventListener('click', function () {
                 // Убираем активный класс у всех табов
                 tabs.forEach(t => t.classList.remove('active'));
                 this.classList.add('active');
@@ -320,29 +314,168 @@
         });
 
         // Обработка формы смены пароля
-        document.getElementById('passwordForm').addEventListener('submit', function(e) {
+        document.getElementById('passwordForm').addEventListener('submit', function (e) {
             e.preventDefault();
             const currentPassword = document.getElementById('currentPassword').value;
             const newPassword = document.getElementById('newPassword').value;
             const confirmPassword = document.getElementById('confirmNewPassword').value;
 
             if (newPassword !== confirmPassword) {
-                alert('Пароли не совпадают!');
+                notify.error('Пароли не совпадают');
                 return;
             }
 
             const user = auth.getCurrentUser();
             auth.changePassword(currentPassword, newPassword).then(result => {
                 if (result) {
-                    alert('Пароль успешно изменен!');
+                    notify.success('Пароль успешно изменен');
                     document.getElementById('passwordForm').reset();
                 } else {
-                    alert('Неверный текущий пароль!');
+                    notify.error('Неверный текущий пароль');
                 }
             });
         });
+
+        function renderActivity(user) {
+            const list = document.getElementById('activityList');
+            if (!list) return;
+            const items = buildActivityItems(user);
+            if (items.length === 0) {
+                list.innerHTML = '<div class="activity-empty">История активности пока пуста</div>';
+                return;
+            }
+            list.innerHTML = items.map(item => `
+                <div class="activity-item">
+                    <div class="activity-icon">${item.icon}</div>
+                    <div class="activity-content">
+                        <div class="activity-title">${item.title}</div>
+                        <div class="activity-date">${item.date}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function buildActivityItems(user) {
+            const entries = [];
+            const documents = database.getTable('documents') || [];
+            const processes = database.getTable('approval_processes') || [];
+            const processesMap = processes.reduce((map, process) => {
+                map[process.process_id] = process;
+                return map;
+            }, {});
+
+            documents.forEach(doc => {
+                if (doc.author_id === user.user_id) {
+                    entries.push({
+                        icon: '📄',
+                        title: `Создан документ "${doc.name}"`,
+                        date: formatActivityDate(doc.created_at),
+                        dateRaw: doc.created_at
+                    });
+                }
+                if (doc.updated_at && doc.updated_at !== doc.created_at && doc.author_id === user.user_id) {
+                    entries.push({
+                        icon: '✏️',
+                        title: `Обновлен документ "${doc.name}"`,
+                        date: formatActivityDate(doc.updated_at),
+                        dateRaw: doc.updated_at
+                    });
+                }
+            });
+
+            const versions = database.getTable('document_versions') || [];
+            versions.forEach(version => {
+                if (version.author_id === user.user_id && version.version_number > 1) {
+                    const name = getDocumentName(version.document_id);
+                    entries.push({
+                        icon: '📎',
+                        title: `Добавлена версия ${version.version_number} для "${name}"`,
+                        date: formatActivityDate(version.created_at),
+                        dateRaw: version.created_at
+                    });
+                }
+            });
+
+            processes.forEach(process => {
+                const docName = getDocumentName(process.document_id);
+                if (process.initiator_id === user.user_id) {
+                    entries.push({
+                        icon: '🧾',
+                        title: `Запущено согласование "${docName}"`,
+                        date: formatActivityDate(process.start_date),
+                        dateRaw: process.start_date
+                    });
+                    if (process.end_date) {
+                        entries.push({
+                            icon: '✅',
+                            title: `Завершено согласование "${docName}"`,
+                            date: formatActivityDate(process.end_date),
+                            dateRaw: process.end_date
+                        });
+                    }
+                }
+            });
+
+            const steps = database.getTable('approval_steps') || [];
+            steps.forEach(step => {
+                if (step.assignee_id !== user.user_id) {
+                    return;
+                }
+                const process = processesMap[step.process_id];
+                const docName = process ? getDocumentName(process.document_id) : `Процесс #${step.process_id}`;
+                if (step.status === 'approved') {
+                    entries.push({
+                        icon: '✓',
+                        title: `Согласован документ "${docName}"`,
+                        date: formatActivityDate(step.completed_at || step.assigned_at),
+                        dateRaw: step.completed_at || step.assigned_at
+                    });
+                } else if (step.status === 'pending') {
+                    entries.push({
+                        icon: '⏳',
+                        title: `Ожидает ваше решение по "${docName}"`,
+                        date: formatActivityDate(step.assigned_at),
+                        dateRaw: step.assigned_at
+                    });
+                }
+            });
+
+            const notifications = database.getTable('notifications') || [];
+            notifications
+                .filter(notification => notification.user_id === user.user_id)
+                .forEach(notification => {
+                    entries.push({
+                        icon: '🔔',
+                        title: notification.title || notification.message || 'Уведомление',
+                        date: formatActivityDate(notification.created_at),
+                        dateRaw: notification.created_at
+                    });
+                });
+
+            return entries
+                .filter(entry => entry.date)
+                .sort((a, b) => new Date(b.dateRaw || b.date) - new Date(a.dateRaw || a.date))
+                .slice(0, 15);
+        }
+
+        function getDocumentName(documentId) {
+            const doc = database.find('documents', d => d.document_id === documentId);
+            return doc ? doc.name : `Документ #${documentId}`;
+        }
+
+        function formatActivityDate(dateString) {
+            if (!dateString) return '';
+            const date = new Date(dateString);
+            if (Number.isNaN(date.getTime())) {
+                return '';
+            }
+            const datePart = typeof formatDateBySettings === 'function'
+                ? formatDateBySettings(date)
+                : date.toLocaleDateString('ru-RU');
+            const timePart = date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+            return `${datePart} ${timePart}`;
+        }
     </script>
 </body>
 
 </html>
-

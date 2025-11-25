@@ -1,3 +1,225 @@
+// Глобальные валидаторы
+(function (global) {
+    const validators = global.validators || {};
+
+    validators.validateEmail = function (email) {
+        if (!email) return false;
+        const trimmed = email.trim();
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(trimmed);
+    };
+
+    validators.validatePhone = function (phone, options = {}) {
+        const { allowEmpty = false } = options;
+        if (!phone || !phone.trim()) {
+            return allowEmpty;
+        }
+        const cleaned = phone.replace(/[\s\-\(\)\+]/g, '');
+        const phoneRegex = /^(\+?7|8)?\d{10}$/;
+        return phoneRegex.test(cleaned);
+    };
+
+    global.validators = validators;
+})(window);
+
+(function (global) {
+    const PHONE_MASK_SELECTOR = 'input[data-phone-mask]';
+
+    function normalizeDigits(value) {
+        let digits = (value || '').replace(/\D/g, '');
+        if (!digits) {
+            return '';
+        }
+        if (digits[0] === '8') {
+            digits = '7' + digits.slice(1);
+        }
+        if (digits[0] !== '7') {
+            digits = '7' + digits;
+        }
+        return digits.slice(0, 11);
+    }
+
+    function formatPhoneValue(value) {
+        const digits = normalizeDigits(value);
+        if (!digits) {
+            return '';
+        }
+
+        const part1 = digits.slice(1, 4); // код
+        const part2 = digits.slice(4, 7); // первые 3
+        const part3 = digits.slice(7, 9); // следующие 2
+        const part4 = digits.slice(9, 11); // последние 2
+
+        let formatted = '+7';
+
+        if (part1.length) {
+            formatted += ' (' + part1;
+            if (part1.length === 3) {
+                formatted += ')';
+            }
+        }
+
+        if (part1.length === 3 && part2.length) {
+            formatted += ' ' + part2;
+        }
+
+        if (part2.length === 3 && part3.length) {
+            formatted += ' ' + part3;
+        }
+
+        if (part3.length === 2 && part4.length) {
+            formatted += '-' + part4;
+        }
+
+        return formatted.trimEnd();
+    }
+
+    function applyMask(input) {
+        if (!input) return;
+        const formatted = formatPhoneValue(input.value);
+        input.value = formatted || '';
+    }
+
+    function isPhoneInput(element) {
+        return element && element.matches(PHONE_MASK_SELECTOR);
+    }
+
+    document.addEventListener('input', event => {
+        if (isPhoneInput(event.target)) {
+            const previousSelection = event.target.selectionStart;
+            applyMask(event.target);
+            if (typeof previousSelection === 'number') {
+                event.target.setSelectionRange(event.target.value.length, event.target.value.length);
+            }
+        }
+    });
+
+    document.addEventListener('focus', event => {
+        if (isPhoneInput(event.target)) {
+            applyMask(event.target);
+        }
+    }, true);
+
+    document.addEventListener('blur', event => {
+        if (isPhoneInput(event.target)) {
+            const digits = (event.target.value || '').replace(/\D/g, '');
+            if (digits.length <= 1) {
+                event.target.value = '';
+            } else {
+                applyMask(event.target);
+            }
+        }
+    }, true);
+
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll(PHONE_MASK_SELECTOR).forEach(input => applyMask(input));
+    });
+
+    global.phoneMask = {
+        format: formatPhoneValue,
+        applyTo(input) {
+            applyMask(input);
+        }
+    };
+})(window);
+
+// Toast notifications
+(function (global) {
+    const container = document.createElement('div');
+    container.className = 'toast-container';
+
+    function ensureContainer() {
+        if (document.body && !document.body.contains(container)) {
+            document.body.appendChild(container);
+        } else if (!document.body) {
+            document.addEventListener('DOMContentLoaded', ensureContainer, { once: true });
+        }
+    }
+
+    function createToast(message, type, timeout) {
+        ensureContainer();
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+        toast.textContent = message;
+        container.appendChild(toast);
+        requestAnimationFrame(() => toast.classList.add('visible'));
+        setTimeout(() => {
+            toast.classList.remove('visible');
+            setTimeout(() => toast.remove(), 300);
+        }, timeout);
+    }
+
+    const notify = {
+        show(message, type = 'info', timeout = 4000) {
+            createToast(message, type, timeout);
+        },
+        success(message, timeout) {
+            this.show(message, 'success', timeout);
+        },
+        error(message, timeout) {
+            this.show(message, 'error', timeout);
+        },
+        info(message, timeout) {
+            this.show(message, 'info', timeout);
+        }
+    };
+
+    global.notify = notify;
+    global.alert = function (message) {
+        notify.info(message);
+    };
+})(window);
+
+// Настройки приложения (формат даты и т.п.)
+(function (global) {
+    const appSettings = global.appSettings || {};
+    const DEFAULT_DATE_FORMAT = 'dd.mm.yyyy';
+    const SUPPORTED_FORMATS = new Set([DEFAULT_DATE_FORMAT, 'yyyy-mm-dd']);
+
+    function getSystemSettings() {
+        try {
+            return JSON.parse(localStorage.getItem('system_settings') || '{}');
+        } catch (error) {
+            console.warn('Не удалось прочитать system_settings', error);
+            return {};
+        }
+    }
+
+    appSettings.getDateFormat = function () {
+        const settings = getSystemSettings();
+        const format = settings.general && settings.general.dateFormat;
+        if (format && SUPPORTED_FORMATS.has(format)) {
+            return format;
+        }
+        return DEFAULT_DATE_FORMAT;
+    };
+
+    function pad(value) {
+        return String(value).padStart(2, '0');
+    }
+
+    appSettings.formatDate = function (dateInput) {
+        if (!dateInput) return '';
+        const date = dateInput instanceof Date ? dateInput : new Date(dateInput);
+        if (Number.isNaN(date.getTime())) {
+            return '';
+        }
+        const day = pad(date.getDate());
+        const month = pad(date.getMonth() + 1);
+        const year = date.getFullYear();
+        switch (this.getDateFormat()) {
+            case 'yyyy-mm-dd':
+                return `${year}-${month}-${day}`;
+            case 'dd.mm.yyyy':
+            default:
+                return `${day}.${month}.${year}`;
+        }
+    };
+
+    global.appSettings = appSettings;
+    global.formatDateBySettings = appSettings.formatDate.bind(appSettings);
+})(window);
+
 // Мобильное меню
 document.addEventListener('DOMContentLoaded', function () {
     const mobileMenuToggle = document.querySelector('.mobile-menu-toggle');
@@ -27,14 +249,43 @@ document.addEventListener('DOMContentLoaded', function () {
     const logoutBtn = document.querySelector('.logout-btn');
 
     if (logoutBtn) {
-        logoutBtn.addEventListener('click', function () {
-            if (confirm('Вы уверены, что хотите выйти из системы?')) {
+        const modal = document.createElement('div');
+        modal.className = 'confirm-modal';
+        modal.innerHTML = `
+            <div class="confirm-modal__content">
+                <div class="confirm-modal__title">Выйти из аккаунта?</div>
+                <div class="confirm-modal__text">Текущая сессия будет завершена.</div>
+                <div class="confirm-modal__actions">
+                    <button class="btn btn-secondary" data-action="cancel">Отмена</button>
+                    <button class="btn btn-danger" data-action="confirm">Выйти</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+
+        const closeModal = () => modal.classList.remove('active');
+        const openModal = () => modal.classList.add('active');
+
+        logoutBtn.addEventListener('click', function (e) {
+            e.preventDefault();
+            openModal();
+        });
+
+        modal.addEventListener('click', function (e) {
+            if (e.target === modal || e.target.dataset.action === 'cancel') {
+                closeModal();
+            }
+        });
+
+        const confirmBtn = modal.querySelector('[data-action="confirm"]');
+        if (confirmBtn) {
+            confirmBtn.addEventListener('click', function () {
                 if (typeof auth !== 'undefined' && auth.logout) {
                     auth.logout();
                 }
                 window.location.href = 'login.html';
-            }
-        });
+            });
+        }
     }
 });
 
@@ -267,19 +518,6 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
-document.addEventListener('DOMContentLoaded', function () {
-    const viewButtons = document.querySelectorAll('.btn-view');
-
-    viewButtons.forEach(button => {
-        button.addEventListener('click', function () {
-            const card = this.closest('.approval-card');
-            if (card) {
-                const title = card.querySelector('.approval-title').textContent;
-                console.log(`Просмотр документа "${title}"`);
-            }
-        });
-    });
-});
 
 // Обработчики для кнопок отчетов
 document.addEventListener('DOMContentLoaded', function () {
@@ -310,19 +548,6 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
-document.addEventListener('DOMContentLoaded', function () {
-    const viewReportButtons = document.querySelectorAll('.btn-view');
-
-    viewReportButtons.forEach(button => {
-        button.addEventListener('click', function () {
-            const card = this.closest('.report-card');
-            if (card) {
-                const title = card.querySelector('.report-title').textContent;
-                console.log(`Просмотр отчета: "${title}"`);
-            }
-        });
-    });
-});
 
 document.addEventListener('DOMContentLoaded', function () {
     const scheduleButtons = document.querySelectorAll('.btn-schedule');

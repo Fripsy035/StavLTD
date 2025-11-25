@@ -361,7 +361,10 @@ const approvalsManager = {
     // Форматировать дату
     formatDate: function(dateString) {
         if (!dateString) return '';
+        if (typeof formatDateBySettings === 'function') {
+            return formatDateBySettings(dateString);
+        }
         const date = new Date(dateString);
-        return date.toLocaleDateString('ru-RU');
+        return Number.isNaN(date.getTime()) ? '' : date.toLocaleDateString('ru-RU');
     }
 };

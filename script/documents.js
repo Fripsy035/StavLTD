@@ -49,6 +49,11 @@ const documentsManager = {
             ? versions.sort((a, b) => b.version_number - a.version_number)[0]
             : null;
 
+        const fileName = latestVersion ? (latestVersion.file_name || latestVersion.file_url || '') : '';
+        const fileUrl = latestVersion
+            ? (latestVersion.file_url || (fileName && fileName.startsWith('http') ? fileName : ''))
+            : '';
+
         const mapped = {
             id: dbDoc.document_id,
             document_id: dbDoc.document_id,
@@ -63,7 +68,8 @@ const documentsManager = {
             createdAt: dbDoc.created_at || new Date().toISOString(),
             updatedAt: dbDoc.updated_at || dbDoc.created_at || new Date().toISOString(),
             description: latestVersion ? latestVersion.change_comment : '',
-            fileUrl: latestVersion ? latestVersion.file_name : '',
+            fileUrl: fileUrl,
+            fileName: fileName,
             fileSize: latestVersion ? latestVersion.file_size : 0,
             version: latestVersion ? latestVersion.version_number : 1
         };
@@ -140,6 +146,7 @@ const documentsManager = {
             document_id: newDoc.document_id,
             version_number: 1,
             file_name: documentData.fileUrl || '',
+            file_url: documentData.fileUrl || '',
             file_size: 0,
             change_comment: documentData.description || 'Первоначальная версия',
             author_id: authorId,
@@ -205,6 +212,7 @@ const documentsManager = {
                 document_id: parseInt(id),
                 version_number: newVersionNumber,
                 file_name: documentData.fileUrl || (latestVersion ? latestVersion.file_name : ''),
+                file_url: documentData.fileUrl || (latestVersion ? (latestVersion.file_url || latestVersion.file_name) : ''),
                 file_size: 0,
                 change_comment: documentData.description || 'Обновление документа',
                 author_id: auth.getCurrentUser().user_id,
@@ -259,9 +267,31 @@ const documentsManager = {
         return documents;
     },
 
-    async getDocumentStats() {
+    async getDocumentStats(options = {}) {
         await this.init();
-        const documents = await this.getAllDocuments();
+        let documents = await this.getAllDocuments();
+
+        if (options && (options.startDate || options.endDate)) {
+            const start = options.startDate ? new Date(options.startDate) : null;
+            const end = options.endDate ? new Date(options.endDate) : null;
+
+            const isValidDate = date => date instanceof Date && !Number.isNaN(date.getTime());
+            const normalizedStart = isValidDate(start) ? start : null;
+            const normalizedEnd = isValidDate(end) ? end : null;
+
+            if (normalizedStart || normalizedEnd) {
+                documents = documents.filter(doc => {
+                    const created = new Date(doc.createdAt);
+                    const updated = new Date(doc.updatedAt);
+                    const dateToCheck = Number.isNaN(updated.getTime()) ? created : updated;
+
+                    if (normalizedStart && dateToCheck < normalizedStart) return false;
+                    if (normalizedEnd && dateToCheck > normalizedEnd) return false;
+                    return true;
+                });
+            }
+        }
+
         const categories = database.getTable('categories') || [];
         const categoryCounts = {};
 
@@ -321,7 +351,10 @@ const documentsManager = {
     // Форматировать дату
     formatDate: function(dateString) {
         if (!dateString) return '';
+        if (typeof formatDateBySettings === 'function') {
+            return formatDateBySettings(dateString);
+        }
         const date = new Date(dateString);
-        return date.toLocaleDateString('ru-RU');
+        return Number.isNaN(date.getTime()) ? '' : date.toLocaleDateString('ru-RU');
     }
 };

@@ -198,7 +198,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <button class="btn btn-approve" data-approval-id="${approval.id}" data-step-id="${currentStep.id}">Согласовать</button>
                                     <button class="btn btn-reject" data-approval-id="${approval.id}" data-step-id="${currentStep.id}">Отклонить</button>
                                 `}
-                                <button class="btn btn-view" data-doc-id="${approval.documentId}">Просмотреть</button>
+                                <button class="btn btn-download" data-doc-id="${approval.documentId}">Скачать</button>
                             </div>
                         </div>
                     `;
@@ -255,8 +255,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <div class="progress-text">${isCompleted ? 'Все этапы завершены' : completedSteps + ' из ' + totalSteps + ' этапов завершено'}</div>
                             </div>
                             <div class="approval-actions">
-                                <button class="btn btn-view" data-doc-id="${approval.documentId}">Просмотреть</button>
-                                ${isCompleted ? '<button class="btn btn-download" data-doc-id="' + approval.documentId + '">Скачать</button>' : ''}
+                                <button class="btn btn-download" data-doc-id="${approval.documentId}">Скачать</button>
                             </div>
                         </div>
                     `;
@@ -299,8 +298,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <div class="progress-text">${isRejected ? 'Согласование отклонено' : completedSteps + ' из ' + totalSteps + ' этапов завершено'}</div>
                             </div>
                             <div class="approval-actions">
-                                <button class="btn btn-view" data-doc-id="${approval.documentId}">Просмотреть</button>
-                                ${!isRejected ? '<button class="btn btn-download" data-doc-id="' + approval.documentId + '">Скачать</button>' : ''}
+                                <button class="btn btn-download" data-doc-id="${approval.documentId}">Скачать</button>
                             </div>
                         </div>
                     `;
@@ -371,14 +369,14 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
-        // Просмотр документа
+        // Скачивание документа
         document.addEventListener('click', async function(e) {
-            const viewBtn = e.target.closest('.btn-view');
-            if (viewBtn) {
+            const downloadBtn = e.target.closest('.btn-download');
+            if (downloadBtn) {
                 e.preventDefault();
-                const docId = viewBtn.getAttribute('data-doc-id');
-                if (docId) {
-                    await showDocumentDetails(docId);
+                const docId = parseInt(downloadBtn.getAttribute('data-doc-id'));
+                if (!isNaN(docId)) {
+                    await downloadDocumentFile(docId);
                 }
             }
         });
@@ -417,7 +415,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function approveStep(approvalId, stepId, comment = '') {
         if (await approvalsManager.approveStep(approvalId, stepId, comment)) {
-            alert('Документ согласован!');
+            notify.success('Документ согласован');
             await renderApprovals();
         }
     }
@@ -425,47 +423,26 @@ document.addEventListener('DOMContentLoaded', function() {
     async function rejectStep(approvalId, stepId) {
         const comment = prompt('Причина отклонения:');
         if (comment && await approvalsManager.rejectStep(approvalId, stepId, comment)) {
-            alert('Документ отклонен!');
+            notify.error('Документ отклонен');
             await renderApprovals();
         }
     }
 
-    async function showDocumentDetails(docId) {
+    async function downloadDocumentFile(docId) {
         try {
             const document = await documentsManager.getDocumentById(docId);
             if (!document) {
-                alert('Документ не найден');
+                notify.error('Документ не найден');
                 return;
             }
-
-            const fileLink = document.fileUrl
-                ? `<a href="${document.fileUrl}" target="_blank">Открыть файл</a>`
-                : '<span>Файл не прикреплен</span>';
-
-            const modalContent = `
-                <div class="document-view">
-                    <p><strong>Название:</strong> ${document.name}</p>
-                    <p><strong>Категория:</strong> ${document.category || '—'}</p>
-                    <p><strong>Статус:</strong> ${documentsManager.getStatusText(document.status)}</p>
-                    <p><strong>Автор:</strong> ${document.author || '—'}</p>
-                    <p><strong>Описание:</strong> ${document.description || '—'}</p>
-                    <p><strong>Файл:</strong> ${fileLink}</p>
-                </div>
-            `;
-
-            if (typeof modals !== 'undefined' && modals.create) {
-                const existing = document.getElementById('documentViewModal');
-                if (existing) {
-                    existing.remove();
-                }
-                modals.create('documentViewModal', 'Информация о документе', modalContent);
-                modals.show('documentViewModal');
+            if (document.fileUrl) {
+                window.open(document.fileUrl, '_blank');
             } else {
-                alert(`Документ: ${document.name}`);
+                notify.error('К документу не прикреплен файл');
             }
         } catch (error) {
-            console.error('Ошибка при отображении документа:', error);
-            alert('Не удалось открыть документ');
+            console.error('Ошибка при скачивании документа:', error);
+            notify.error('Не удалось открыть документ');
         }
     }
 

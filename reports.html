@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>СЭД-СТАВ | Отчеты</title>
     <link rel="stylesheet" href="style/styles.css">
+    <link rel="stylesheet" href="style/normalize.css">
 </head>
 
 <body>
@@ -46,6 +47,26 @@
             <div class="content">
                 <div class="section-header">
                     <h2 class="section-title">Отчеты</h2>
+                </div>
+
+                <div class="report-filters">
+                    <div class="filter-group">
+                        <label for="reportPeriodPreset">Период</label>
+                        <select id="reportPeriodPreset" class="form-control">
+                            <option value="last30">Последние 30 дней</option>
+                            <option value="last7">Последние 7 дней</option>
+                            <option value="custom">Произвольный диапазон</option>
+                        </select>
+                    </div>
+                    <div class="filter-group report-filter-dates" id="reportCustomDates">
+                        <label>Диапазон дат</label>
+                        <div class="report-filter-dates-inner">
+                            <input type="date" class="form-control" id="reportStartDate">
+                            <span>—</span>
+                            <input type="date" class="form-control" id="reportEndDate">
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-secondary" id="applyReportPeriod">Применить</button>
                 </div>
 
                 <!-- Быстрая статистика -->
@@ -100,14 +121,15 @@
                                 </div>
                             </div>
                             <div class="report-period">
-                                <strong>Период:</strong> За последние 30 дней
+                                <strong>Период:</strong> <span id="reportDocsPeriod">—</span>
                             </div>
                             <div class="report-description">
                                 Полный отчет по движению документов в системе: создание, согласование, статусы и сроки.
                             </div>
                             <div class="report-actions">
-                                <button class="btn btn-generate">Сформировать отчет</button>
-                                <button class="btn btn-schedule">Запланировать</button>
+                                <button class="btn btn-generate" data-report-type="documents">Сформировать
+                                    отчет</button>
+                                <button class="btn btn-schedule" data-schedule="documents-weekly">Запланировать</button>
                             </div>
                         </div>
 
@@ -135,14 +157,16 @@
                                 </div>
                             </div>
                             <div class="report-period">
-                                <strong>Период:</strong> Текущий месяц
+                                <strong>Период:</strong> <span id="reportApprovalsPeriod">—</span>
                             </div>
                             <div class="report-description">
                                 Детальная аналитика процессов согласования: сроки, задержки, эффективность сотрудников.
                             </div>
                             <div class="report-actions">
-                                <button class="btn btn-generate">Сформировать отчет</button>
-                                <button class="btn btn-schedule">Запланировать</button>
+                                <button class="btn btn-generate" data-report-type="approvals">Сформировать
+                                    отчет</button>
+                                <button class="btn btn-schedule"
+                                    data-schedule="approvals-monthly">Запланировать</button>
                             </div>
                         </div>
 
@@ -170,15 +194,16 @@
                                 </div>
                             </div>
                             <div class="report-period">
-                                <strong>Период:</strong> С начала года
+                                <strong>Период:</strong> <span id="reportProjectsPeriod">—</span>
                             </div>
                             <div class="report-description">
                                 Отчет по документационному обеспечению проектов: статусы, распределение по типам,
                                 прогресс.
                             </div>
                             <div class="report-actions">
-                                <button class="btn btn-generate">Сформировать отчет</button>
-                                <button class="btn btn-schedule">Запланировать</button>
+                                <button class="btn btn-generate" data-report-type="projects">Сформировать отчет</button>
+                                <button class="btn btn-schedule"
+                                    data-schedule="projects-quarterly">Запланировать</button>
                             </div>
                         </div>
                     </div>
@@ -205,9 +230,9 @@
                                 документооборота.
                             </div>
                             <div class="report-actions">
-                                <button class="btn btn-view">Просмотреть последний</button>
-                                <button class="btn btn-download">Скачать</button>
-                                <button class="btn btn-schedule">Изменить расписание</button>
+                                <button class="btn btn-download" data-scheduled="weekly-docs">Скачать</button>
+                                <button class="btn btn-schedule" data-schedule="documents-weekly">Изменить
+                                    расписание</button>
                             </div>
                         </div>
 
@@ -230,56 +255,17 @@
                                 планирования.
                             </div>
                             <div class="report-actions">
-                                <button class="btn btn-view">Просмотреть последний</button>
-                                <button class="btn btn-download">Скачать</button>
-                                <button class="btn btn-schedule">Изменить расписание</button>
+                                <button class="btn btn-download" data-scheduled="monthly-approvals">Скачать</button>
+                                <button class="btn btn-schedule" data-schedule="approvals-monthly">Изменить
+                                    расписание</button>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <div class="tab-content" id="archive-reports">
-                    <div class="report-grid">
-                        <div class="report-card">
-                            <div class="report-header">
-                                <div>
-                                    <div class="report-title">Отчет по документообороту за сентябрь 2025</div>
-                                    <div class="report-meta">Сформирован: 01.10.2025 09:15</div>
-                                </div>
-                                <div class="report-type">Архивный</div>
-                            </div>
-                            <div class="report-period">
-                                <strong>Период:</strong> 01.09.2025 - 30.09.2025
-                            </div>
-                            <div class="report-description">
-                                Полный отчет по документообороту за сентябрь 2025 года.
-                            </div>
-                            <div class="report-actions">
-                                <button class="btn btn-view">Просмотреть</button>
-                                <button class="btn btn-download">Скачать</button>
-                            </div>
-                        </div>
-
-                        <div class="report-card">
-                            <div class="report-header">
-                                <div>
-                                    <div class="report-title">Отчет по согласованиям за август 2025</div>
-                                    <div class="report-meta">Сформирован: 01.09.2025 10:30</div>
-                                </div>
-                                <div class="report-type">Архивный</div>
-                            </div>
-                            <div class="report-period">
-                                <strong>Период:</strong> 01.08.2025 - 31.08.2025
-                            </div>
-                            <div class="report-description">
-                                Аналитический отчет по процессам согласования за август 2025 года.
-                            </div>
-                            <div class="report-actions">
-                                <button class="btn btn-view">Просмотреть</button>
-                                <button class="btn btn-download">Скачать</button>
-                            </div>
-                        </div>
-                    </div>
+                    <div class="report-grid" id="reportsArchiveList"></div>
+                    <div class="empty-state" id="reportsArchiveEmpty">Еще не сформировано ни одного отчета.</div>
                 </div>
             </div>
         </div>
@@ -299,6 +285,7 @@
     <script src="script/access-control.js"></script>
     <script src="script/documents.js"></script>
     <script src="script/approvals.js"></script>
+    <script src="script/modals.js"></script>
     <script src="script/reports-page.js"></script>
 </body>
 

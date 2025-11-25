@@ -117,12 +117,12 @@ document.addEventListener('DOMContentLoaded', function() {
         const isRegularUser = user && user.role === 'Пользователь';
 
         container.innerHTML = recent.map(doc => {
-            // Для обычных пользователей показываем только кнопку "Скачать"
+            const canEdit = doc.status !== 'review';
             const actions = isRegularUser 
                 ? `<button class="btn btn-download" data-doc-id="${doc.id}">Скачать</button>`
                 : `
                     <button class="btn btn-download" data-doc-id="${doc.id}">Скачать</button>
-                    <button class="btn btn-edit" data-doc-id="${doc.id}">Редактировать</button>
+                    ${canEdit ? `<button class="btn btn-edit" data-doc-id="${doc.id}">Редактировать</button>` : ''}
                 `;
             
             return `
@@ -144,13 +144,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Обработчики действий
         container.querySelectorAll('.btn-download').forEach(btn => {
-            btn.addEventListener('click', function() {
+            btn.addEventListener('click', async function() {
                 const docId = this.getAttribute('data-doc-id');
-                const doc = documentsManager.getDocumentById(docId);
+                const doc = await documentsManager.getDocumentById(docId);
                 if (doc && doc.fileUrl) {
                     window.open(doc.fileUrl, '_blank');
                 } else {
-                    alert('Файл не прикреплен к документу');
+                    notify.error('К документу не прикреплен файл');
                 }
             });
         });
@@ -158,8 +158,13 @@ document.addEventListener('DOMContentLoaded', function() {
         // Обработчик редактирования только для не-обычных пользователей
         if (!isRegularUser) {
             container.querySelectorAll('.btn-edit').forEach(btn => {
-                btn.addEventListener('click', function() {
+                btn.addEventListener('click', async function() {
                     const docId = this.getAttribute('data-doc-id');
+                    const doc = await documentsManager.getDocumentById(docId);
+                    if (doc && doc.status === 'review') {
+                        notify.error('Документ находится на согласовании и недоступен для редактирования');
+                        return;
+                    }
                     window.location.href = `documents.html?edit=${docId}`;
                 });
             });
