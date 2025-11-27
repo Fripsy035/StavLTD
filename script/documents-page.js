@@ -1,6 +1,7 @@
 // Скрипт для страницы документов
 
 document.addEventListener('DOMContentLoaded', function () {
+    const ACTIONS_BREAKPOINT = 1024;
     let currentFilters = {};
     let currentPage = 1;
     const PAGE_SIZE = 5;
@@ -83,6 +84,8 @@ document.addEventListener('DOMContentLoaded', function () {
         setupFilters();
         await updateFilterCounts();
         applyFilterHighlights();
+
+        window.addEventListener('resize', updateDocumentActionLayout);
 
         console.log('Страница документов инициализирована');
     }
@@ -228,6 +231,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }).join('');
 
         renderPagination(totalPages, totalDocuments);
+        updateDocumentActionLayout();
     }
 
     function renderPagination(totalPages, totalDocuments) {
@@ -743,10 +747,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
                         try {
                             await submitApprovalInternal(currentDocId);
-                            } catch (error) {
-                                console.error('Ошибка в submitApprovalInternal (form submit):', error);
-                                notify.error('Ошибка при отправке на согласование: ' + (error.message || error));
-                            }
+                        } catch (error) {
+                            console.error('Ошибка в submitApprovalInternal (form submit):', error);
+                            notify.error('Ошибка при отправке на согласование: ' + (error.message || error));
+                        }
 
                         return false;
                     });
@@ -1136,6 +1140,13 @@ document.addEventListener('DOMContentLoaded', function () {
             } else if (key in categoryCounts) {
                 countEl.textContent = categoryCounts[key];
             }
+        });
+    }
+
+    function updateDocumentActionLayout() {
+        const shouldStack = window.innerWidth <= ACTIONS_BREAKPOINT;
+        document.querySelectorAll('.document-actions').forEach(actions => {
+            actions.classList.toggle('stacked', shouldStack);
         });
     }
 });

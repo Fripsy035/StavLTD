@@ -547,18 +547,3 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 });
-
-
-document.addEventListener('DOMContentLoaded', function () {
-    const scheduleButtons = document.querySelectorAll('.btn-schedule');
-
-    scheduleButtons.forEach(button => {
-        button.addEventListener('click', function () {
-            const card = this.closest('.report-card');
-            if (card) {
-                const title = card.querySelector('.report-title').textContent;
-                console.log(`Настройка расписания для отчета: "${title}"`);
-            }
-        });
-    });
-});

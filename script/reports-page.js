@@ -404,8 +404,42 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function downloadReportFile(report) {
-        const fileName = `${report.type}_${new Date(report.generatedAt).toISOString().split('T')[0]}.json`;
-        const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
+        const lines = [];
+        lines.push(`Отчет: ${report.title || '-'}`);
+        lines.push(`Тип: ${report.type || '-'}`);
+        lines.push(`Период: ${report.periodLabel || '-'}`);
+        lines.push(`Сформирован: ${formatDateTime(report.generatedAt)}`);
+        lines.push('');
+
+        if (report.summary) {
+            lines.push('Краткое описание:');
+            lines.push(report.summary);
+            lines.push('');
+        }
+
+        if (report.metrics && typeof report.metrics === 'object') {
+            lines.push('Показатели:');
+            Object.entries(report.metrics).forEach(([key, value]) => {
+                lines.push(` - ${key}: ${value}`);
+            });
+            lines.push('');
+        }
+
+        if (report.details) {
+            lines.push('Детализация:');
+            if (typeof report.details === 'object') {
+                Object.entries(report.details).forEach(([key, value]) => {
+                    lines.push(` - ${key}: ${value}`);
+                });
+            } else {
+                lines.push(String(report.details));
+            }
+            lines.push('');
+        }
+
+        const content = lines.join('\r\n').trim() + '\r\n';
+        const fileName = `${report.type}_${new Date(report.generatedAt).toISOString().split('T')[0]}.txt`;
+        const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
         const link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
         link.download = fileName;

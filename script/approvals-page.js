@@ -1,6 +1,13 @@
 // Скрипт для страницы согласований
 
 document.addEventListener('DOMContentLoaded', function() {
+    const APPROVALS_PER_PAGE = 4;
+    const approvalsPaginationState = {
+        'my-approvals': 1,
+        initiated: 1,
+        completed: 1
+    };
+
     if (typeof auth === 'undefined' || !auth.isAuthenticated()) {
         window.location.href = 'login.html';
         return;
@@ -74,6 +81,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         await renderApprovals();
         setupEventHandlers();
+        setupPaginationHandlers();
     }
     
     function setupTabs() {
@@ -102,6 +110,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (searchInput && searchButton) {
             const performSearch = async () => {
                 currentSearchQuery = searchInput.value.trim().toLowerCase();
+                resetApprovalsPagination();
                 await renderApprovals();
             };
             
@@ -145,64 +154,19 @@ document.addEventListener('DOMContentLoaded', function() {
         const container = document.querySelector('#my-approvals .approval-grid');
         
         if (container && !isRegularUser) {
-            if (myApprovals.length === 0) {
-                container.innerHTML = '<p style="text-align: center; padding: 20px;">' + (currentSearchQuery ? 'Ничего не найдено' : 'Нет задач согласования') + '</p>';
-            } else {
-                container.innerHTML = myApprovals.map(approval => {
-                    const isOverdue = approvalsManager.checkOverdue(approval);
-                    const currentStep = approval.steps.find(s => s.status === 'pending');
-                    const completedSteps = approval.steps.filter(s => s.status === 'approved').length;
-                    const totalSteps = approval.steps.length;
-                    const progress = (completedSteps / totalSteps) * 100;
-
-                    return `
-                        <div class="approval-card ${isOverdue ? 'urgent' : 'normal'}" data-approval-id="${approval.id}">
-                            <div class="approval-header">
-                                <div>
-                                    <div class="approval-title">${approval.documentName}</div>
-                                    <div class="approval-meta">Создан: ${approvalsManager.formatDate(approval.createdAt)} | Срок: до ${approvalsManager.formatDate(approval.deadline)}</div>
-                                </div>
-                                <div class="approval-status ${isOverdue ? 'status-pending' : 'status-in-progress'}">${isOverdue ? 'Просрочено' : 'В работе'}</div>
-                            </div>
-                            <div class="approval-progress">
-                                <div class="progress-bar">
-                                    <div class="progress-fill" style="width: ${progress}%"></div>
-                                </div>
-                                <div class="progress-text">${completedSteps} из ${totalSteps} этапов завершено</div>
-                            </div>
-                            <div class="approval-steps">
-                                ${approval.steps.map((step, index) => {
-                                    let stepClass = 'pending';
-                                    let stepIcon = (index + 1).toString();
-                                    if (step.status === 'approved') {
-                                        stepClass = 'completed';
-                                        stepIcon = '✓';
-                                    } else if (step.status === 'pending') {
-                                        stepClass = 'current';
-                                        stepIcon = '!';
-                                    }
-                                    
-                                    return `
-                                        <div class="step ${stepClass}">
-                                            <div class="step-icon">${stepIcon}</div>
-                                            <div class="step-info">
-                                                <div class="step-name">${step.approverName}</div>
-                                                <div class="step-meta">${step.status === 'approved' ? 'Согласовано ' + approvalsManager.formatDate(step.approvedAt) : step.status === 'pending' ? 'Ожидает вашего решения' : 'Ожидает предыдущих этапов'}</div>
-                                            </div>
-                                        </div>
-                                    `;
-                                }).join('')}
-                            </div>
-                            <div class="approval-actions">
-                                ${isRegularUser ? '' : `
-                                    <button class="btn btn-approve" data-approval-id="${approval.id}" data-step-id="${currentStep.id}">Согласовать</button>
-                                    <button class="btn btn-reject" data-approval-id="${approval.id}" data-step-id="${currentStep.id}">Отклонить</button>
-                                `}
-                                <button class="btn btn-download" data-doc-id="${approval.documentId}">Скачать</button>
-                            </div>
-                        </div>
-                    `;
-                }).join('');
+            renderPaginatedSection({
+                tabKey: 'my-approvals',
+                items: myApprovals,
+                containerSelector: '#my-approvals .approval-grid',
+                paginationSelector: '#myApprovalsPagination',
+                emptyMessage: currentSearchQuery ? 'Ничего не найдено' : 'Нет задач согласования',
+                renderItem: approval => buildMyApprovalCard(approval, isRegularUser)
+            });
+        } else {
+            const paginationEl = document.querySelector('#myApprovalsPagination');
+            if (paginationEl) {
+                paginationEl.innerHTML = '';
+                paginationEl.style.display = 'none';
             }
         }
 
@@ -229,39 +193,14 @@ document.addEventListener('DOMContentLoaded', function() {
         
         const initiatedContainer = document.querySelector('#initiated .approval-grid');
         
-        if (initiatedContainer) {
-            if (initiated.length === 0) {
-                initiatedContainer.innerHTML = '<p style="text-align: center; padding: 20px;">' + (currentSearchQuery ? 'Ничего не найдено' : 'Нет инициированных согласований') + '</p>';
-            } else {
-                initiatedContainer.innerHTML = initiated.map(approval => {
-                    const completedSteps = approval.steps.filter(s => s.status === 'approved').length;
-                    const totalSteps = approval.steps.length;
-                    const progress = (completedSteps / totalSteps) * 100;
-                    const isCompleted = approval.status === 'completed';
-
-                    return `
-                        <div class="approval-card ${isCompleted ? 'completed' : 'normal'}" data-approval-id="${approval.id}">
-                            <div class="approval-header">
-                                <div>
-                                    <div class="approval-title">${approval.documentName}</div>
-                                    <div class="approval-meta">Создан: ${approvalsManager.formatDate(approval.createdAt)}${isCompleted ? ' | Завершен: ' + approvalsManager.formatDate(approval.createdAt) : ''}</div>
-                                </div>
-                                <div class="approval-status ${isCompleted ? 'status-approved' : 'status-in-progress'}">${isCompleted ? 'Согласован' : 'В работе'}</div>
-                            </div>
-                            <div class="approval-progress">
-                                <div class="progress-bar">
-                                    <div class="progress-fill" style="width: ${progress}%"></div>
-                                </div>
-                                <div class="progress-text">${isCompleted ? 'Все этапы завершены' : completedSteps + ' из ' + totalSteps + ' этапов завершено'}</div>
-                            </div>
-                            <div class="approval-actions">
-                                <button class="btn btn-download" data-doc-id="${approval.documentId}">Скачать</button>
-                            </div>
-                        </div>
-                    `;
-                }).join('');
-            }
-        }
+        renderPaginatedSection({
+            tabKey: 'initiated',
+            items: initiated,
+            containerSelector: '#initiated .approval-grid',
+            paginationSelector: '#initiatedApprovalsPagination',
+            emptyMessage: currentSearchQuery ? 'Ничего не найдено' : 'Нет инициированных согласований',
+            renderItem: approval => buildInitiatedApprovalCard(approval)
+        });
         
         // Завершенные согласования
         let completed = allApprovals.filter(a => a.status === 'completed' || a.status === 'rejected');
@@ -272,39 +211,14 @@ document.addEventListener('DOMContentLoaded', function() {
         
         const completedContainer = document.querySelector('#completed .approval-grid');
         
-        if (completedContainer) {
-            if (completed.length === 0) {
-                completedContainer.innerHTML = '<p style="text-align: center; padding: 20px;">' + (currentSearchQuery ? 'Ничего не найдено' : 'Нет завершенных согласований') + '</p>';
-            } else {
-                completedContainer.innerHTML = completed.map(approval => {
-                    const completedSteps = approval.steps.filter(s => s.status === 'approved').length;
-                    const totalSteps = approval.steps.length;
-                    const progress = (completedSteps / totalSteps) * 100;
-                    const isRejected = approval.status === 'rejected';
-
-                    return `
-                        <div class="approval-card ${isRejected ? 'urgent' : 'completed'}" data-approval-id="${approval.id}">
-                            <div class="approval-header">
-                                <div>
-                                    <div class="approval-title">${approval.documentName}</div>
-                                    <div class="approval-meta">Создан: ${approvalsManager.formatDate(approval.createdAt)} | ${isRejected ? 'Отклонен' : 'Завершен'}: ${approvalsManager.formatDate(approval.endDate || approval.createdAt)}</div>
-                                </div>
-                                <div class="approval-status ${isRejected ? 'status-pending' : 'status-approved'}">${isRejected ? 'Отклонен' : 'Завершен'}</div>
-                            </div>
-                            <div class="approval-progress">
-                                <div class="progress-bar">
-                                    <div class="progress-fill" style="width: ${progress}%"></div>
-                                </div>
-                                <div class="progress-text">${isRejected ? 'Согласование отклонено' : completedSteps + ' из ' + totalSteps + ' этапов завершено'}</div>
-                            </div>
-                            <div class="approval-actions">
-                                <button class="btn btn-download" data-doc-id="${approval.documentId}">Скачать</button>
-                            </div>
-                        </div>
-                    `;
-                }).join('');
-            }
-        }
+        renderPaginatedSection({
+            tabKey: 'completed',
+            items: completed,
+            containerSelector: '#completed .approval-grid',
+            paginationSelector: '#completedApprovalsPagination',
+            emptyMessage: currentSearchQuery ? 'Ничего не найдено' : 'Нет завершенных согласований',
+            renderItem: approval => buildCompletedApprovalCard(approval)
+        });
     }
     
     function setupTabs() {
@@ -328,60 +242,239 @@ document.addEventListener('DOMContentLoaded', function() {
         // Согласование – показываем поле комментария
         document.addEventListener('click', function(e) {
             const approveBtn = e.target.closest('.btn-approve');
-            if (approveBtn) {
-                e.preventDefault();
-                showApproveCommentInput(approveBtn);
+            if (!approveBtn) {
+                return;
             }
+            e.preventDefault();
+            showApproveCommentInput(approveBtn);
         });
-        
+
         // Подтверждение согласования
         document.addEventListener('click', async function(e) {
             const confirmBtn = e.target.closest('.btn-approve-confirm');
-            if (confirmBtn) {
-                e.preventDefault();
-                const approvalId = confirmBtn.getAttribute('data-approval-id');
-                const stepId = confirmBtn.getAttribute('data-step-id');
-                const commentInput = confirmBtn.closest('.approval-comment-box')?.querySelector('.approval-comment-input');
-                const comment = commentInput ? commentInput.value.trim() : '';
-                await approveStep(approvalId, stepId, comment);
-                removeAllCommentBoxes();
+            if (!confirmBtn) {
+                return;
             }
+            e.preventDefault();
+            const approvalId = confirmBtn.getAttribute('data-approval-id');
+            const stepId = confirmBtn.getAttribute('data-step-id');
+            const commentInput = confirmBtn.closest('.approval-comment-box')?.querySelector('.approval-comment-input');
+            const comment = commentInput ? commentInput.value.trim() : '';
+            await approveStep(approvalId, stepId, comment);
+            removeAllCommentBoxes();
         });
-        
+
         // Отмена ввода комментария
         document.addEventListener('click', function(e) {
             const cancelBtn = e.target.closest('.btn-approve-cancel');
-            if (cancelBtn) {
-                e.preventDefault();
-                const box = cancelBtn.closest('.approval-comment-box');
-                if (box) {
-                    box.remove();
-                }
+            if (!cancelBtn) {
+                return;
+            }
+            e.preventDefault();
+            const box = cancelBtn.closest('.approval-comment-box');
+            if (box) {
+                box.remove();
             }
         });
 
-        // Отклонение
+        // Отклонение согласования
         document.addEventListener('click', function(e) {
-            if (e.target.classList.contains('btn-reject')) {
-                const approvalId = e.target.getAttribute('data-approval-id');
-                const stepId = e.target.getAttribute('data-step-id');
-                rejectStep(approvalId, stepId);
+            const rejectBtn = e.target.closest('.btn-reject');
+            if (!rejectBtn) {
+                return;
             }
+            e.preventDefault();
+            const approvalId = rejectBtn.getAttribute('data-approval-id');
+            const stepId = rejectBtn.getAttribute('data-step-id');
+            rejectStep(approvalId, stepId);
         });
 
         // Скачивание документа
         document.addEventListener('click', async function(e) {
             const downloadBtn = e.target.closest('.btn-download');
-            if (downloadBtn) {
-                e.preventDefault();
-                const docId = parseInt(downloadBtn.getAttribute('data-doc-id'));
-                if (!isNaN(docId)) {
-                    await downloadDocumentFile(docId);
-                }
+            if (!downloadBtn) {
+                return;
+            }
+            e.preventDefault();
+            const docId = parseInt(downloadBtn.getAttribute('data-doc-id'), 10);
+            if (!Number.isNaN(docId)) {
+                await downloadDocumentFile(docId);
             }
         });
     }
 
+    function setupPaginationHandlers() {
+        document.addEventListener('click', function(e) {
+            const link = e.target.closest('.pagination a[data-tab]');
+            if (!link) {
+                return;
+            }
+            e.preventDefault();
+            const tabKey = link.dataset.tab;
+            const page = parseInt(link.dataset.page, 10);
+            if (!tabKey || Number.isNaN(page)) {
+                return;
+            }
+            approvalsPaginationState[tabKey] = page;
+            renderApprovals();
+        });
+    }
+
+    function resetApprovalsPagination() {
+        Object.keys(approvalsPaginationState).forEach(key => {
+            approvalsPaginationState[key] = 1;
+        });
+    }
+
+    function renderPaginatedSection({ tabKey, items, containerSelector, paginationSelector, emptyMessage, renderItem }) {
+        const container = document.querySelector(containerSelector);
+        const paginationEl = document.querySelector(paginationSelector);
+
+        if (!container || !paginationEl) {
+            return;
+        }
+
+        if (!items || items.length === 0) {
+            container.innerHTML = `<p style="text-align: center; padding: 20px;">${emptyMessage}</p>`;
+            paginationEl.innerHTML = '';
+            paginationEl.style.display = 'none';
+            approvalsPaginationState[tabKey] = 1;
+            return;
+        }
+
+        const totalPages = Math.max(1, Math.ceil(items.length / APPROVALS_PER_PAGE));
+        const currentPage = Math.min(approvalsPaginationState[tabKey] || 1, totalPages);
+        approvalsPaginationState[tabKey] = currentPage;
+        const startIdx = (currentPage - 1) * APPROVALS_PER_PAGE;
+        const paginatedItems = items.slice(startIdx, startIdx + APPROVALS_PER_PAGE);
+
+        container.innerHTML = paginatedItems.map(renderItem).join('');
+
+        if (totalPages <= 1) {
+            paginationEl.innerHTML = '';
+            paginationEl.style.display = 'none';
+            return;
+        }
+
+        paginationEl.style.display = 'flex';
+        paginationEl.innerHTML = Array.from({ length: totalPages }, (_, index) => {
+            const page = index + 1;
+            const activeClass = page === currentPage ? 'active' : '';
+            return `<li><a href="#" data-tab="${tabKey}" data-page="${page}" class="${activeClass}">${page}</a></li>`;
+        }).join('');
+    }
+
+    function buildMyApprovalCard(approval, isRegularUser) {
+        const isOverdue = approvalsManager.checkOverdue(approval);
+        const currentStep = approval.steps.find(s => s.status === 'pending') || approval.steps[approval.steps.length - 1];
+        const completedSteps = approval.steps.filter(s => s.status === 'approved').length;
+        const totalSteps = approval.steps.length;
+        const progress = totalSteps ? (completedSteps / totalSteps) * 100 : 0;
+
+        return `
+            <div class="approval-card ${isOverdue ? 'urgent' : 'normal'}" data-approval-id="${approval.id}">
+                <div class="approval-header">
+                    <div>
+                        <div class="approval-title">${approval.documentName}</div>
+                        <div class="approval-meta">Создан: ${approvalsManager.formatDate(approval.createdAt)} | Срок: до ${approvalsManager.formatDate(approval.deadline)}</div>
+                    </div>
+                    <div class="approval-status ${isOverdue ? 'status-pending' : 'status-in-progress'}">${isOverdue ? 'Просрочено' : 'В работе'}</div>
+                </div>
+                <div class="approval-progress">
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${progress}%"></div>
+                    </div>
+                    <div class="progress-text">${completedSteps} из ${totalSteps} этапов завершено</div>
+                </div>
+                <div class="approval-steps">
+                    ${approval.steps.map((step, index) => {
+                        let stepClass = 'pending';
+                        let stepIcon = (index + 1).toString();
+                        if (step.status === 'approved') {
+                            stepClass = 'completed';
+                            stepIcon = '✓';
+                        } else if (step.status === 'pending') {
+                            stepClass = 'current';
+                            stepIcon = '!';
+                        }
+
+                        return `
+                            <div class="step ${stepClass}">
+                                <div class="step-icon">${stepIcon}</div>
+                                <div class="step-info">
+                                    <div class="step-name">${step.approverName}</div>
+                                    <div class="step-meta">${step.status === 'approved' ? 'Согласовано ' + approvalsManager.formatDate(step.approvedAt) : step.status === 'pending' ? 'Ожидает вашего решения' : 'Ожидает предыдущих этапов'}</div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+                <div class="approval-actions">
+                    ${isRegularUser || !currentStep ? '' : `
+                        <button class="btn btn-approve" data-approval-id="${approval.id}" data-step-id="${currentStep.id}">Согласовать</button>
+                        <button class="btn btn-reject" data-approval-id="${approval.id}" data-step-id="${currentStep.id}">Отклонить</button>
+                    `}
+                    <button class="btn btn-download" data-doc-id="${approval.documentId}">Скачать</button>
+                </div>
+            </div>
+        `;
+    }
+
+    function buildInitiatedApprovalCard(approval) {
+        const completedSteps = approval.steps.filter(s => s.status === 'approved').length;
+        const totalSteps = approval.steps.length;
+        const progress = totalSteps ? (completedSteps / totalSteps) * 100 : 0;
+        const isCompleted = approval.status === 'completed';
+
+        return `
+            <div class="approval-card ${isCompleted ? 'completed' : 'normal'}" data-approval-id="${approval.id}">
+                <div class="approval-header">
+                    <div>
+                        <div class="approval-title">${approval.documentName}</div>
+                        <div class="approval-meta">Создан: ${approvalsManager.formatDate(approval.createdAt)}${isCompleted ? ' | Завершен: ' + approvalsManager.formatDate(approval.createdAt) : ''}</div>
+                    </div>
+                    <div class="approval-status ${isCompleted ? 'status-approved' : 'status-in-progress'}">${isCompleted ? 'Согласован' : 'В работе'}</div>
+                </div>
+                <div class="approval-progress">
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${progress}%"></div>
+                    </div>
+                    <div class="progress-text">${isCompleted ? 'Все этапы завершены' : completedSteps + ' из ' + totalSteps + ' этапов завершено'}</div>
+                </div>
+                <div class="approval-actions">
+                    <button class="btn btn-download" data-doc-id="${approval.documentId}">Скачать</button>
+                </div>
+            </div>
+        `;
+    }
+
+    function buildCompletedApprovalCard(approval) {
+        const completedSteps = approval.steps.filter(s => s.status === 'approved').length;
+        const totalSteps = approval.steps.length;
+        const progress = totalSteps ? (completedSteps / totalSteps) * 100 : 0;
+        const isRejected = approval.status === 'rejected';
+
+        return `
+            <div class="approval-card ${isRejected ? 'urgent' : 'completed'}" data-approval-id="${approval.id}">
+                <div class="approval-header">
+                    <div>
+                        <div class="approval-title">${approval.documentName}</div>
+                        <div class="approval-meta">Создан: ${approvalsManager.formatDate(approval.createdAt)} | ${isRejected ? 'Отклонен' : 'Завершен'}: ${approvalsManager.formatDate(approval.endDate || approval.createdAt)}</div>
+                    </div>
+                    <div class="approval-status ${isRejected ? 'status-pending' : 'status-approved'}">${isRejected ? 'Отклонен' : 'Завершен'}</div>
+                </div>
+                <div class="approval-progress">
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${progress}%"></div>
+                    </div>
+                    <div class="progress-text">${isRejected ? 'Согласование отклонено' : completedSteps + ' из ' + totalSteps + ' этапов завершено'}</div>
+                </div>
+                <div class="approval-actions">
+                    <button class="btn btn-download" data-doc-id="${approval.documentId}">Скачать</button>
+                </div>
+            </div>
+        `;
+    }
     function removeAllCommentBoxes() {
         document.querySelectorAll('.approval-comment-box').forEach(box => box.remove());
     }
