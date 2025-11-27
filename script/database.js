@@ -175,6 +175,21 @@ const database = {
             this._data.departments = existing;
             console.info('Добавлены отсутствующие отделы по умолчанию');
         }
+
+        // Обновляем пароль администратора, если его нет
+        if (Array.isArray(this._data.users)) {
+            const adminUser = this._data.users.find(u => u.user_id === 1 && u.email === 'admin@stav.ltd');
+            if (adminUser && !adminUser.password) {
+                adminUser.password = 'admin123';
+                if (!adminUser.phone) {
+                    adminUser.phone = '+7 (928) 555-44-33';
+                }
+                changed = true;
+            }
+        }
+        if (changed) {
+            this._saveToStorage();
+        }
     },
 
     _getDefaultData() {
@@ -198,6 +213,7 @@ const database = {
                     department_id: 1,
                     email: 'admin@stav.ltd',
                     phone: '+7 (928) 555-44-33',
+                    password: 'admin123',
                     role: 'admin',
                     is_active: true
                 }

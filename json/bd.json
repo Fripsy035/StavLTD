@@ -13,6 +13,8 @@
             "position": "Главный инженер",
             "department_id": 1,
             "email": "admin@stav.ltd",
+            "phone": "+7 (928) 555-44-33",
+            "password": "admin123",
             "role": "admin",
             "is_active": true
         }

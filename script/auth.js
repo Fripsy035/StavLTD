@@ -17,7 +17,7 @@ const auth = {
     },
 
     // Получить текущего пользователя
-    getCurrentUser: function() {
+    getCurrentUser: function () {
         const userStr = localStorage.getItem('currentUser');
         if (userStr) {
             const user = JSON.parse(userStr);
@@ -32,13 +32,13 @@ const auth = {
     },
 
     // Получить всех пользователей
-    getUsers: function() {
+    getUsers: function () {
         const users = database.getTable('users');
         return users.map(u => this._mapUserFromDB(u));
     },
 
     // Маппинг пользователя из БД в формат приложения
-    _mapUserFromDB: function(dbUser) {
+    _mapUserFromDB: function (dbUser) {
         const department = database.find('departments', d => d.department_id === dbUser.department_id);
         return {
             id: dbUser.user_id,
@@ -56,7 +56,7 @@ const auth = {
     },
 
     // Маппинг роли
-    _mapRole: function(role) {
+    _mapRole: function (role) {
         const roleMap = {
             'admin': 'Администратор',
             'editor': 'Редактор',
@@ -66,26 +66,30 @@ const auth = {
     },
 
     // Вход в систему
-    login: async function(email, password, remember) {
+    login: async function (email, password, remember) {
         await this.init();
         const users = database.getTable('users');
         const dbUser = users.find(u => u.email === email && u.is_active !== false);
-        
+
         // В реальном приложении пароль должен быть хеширован
         // Для демонстрации используем простую проверку
         // Пароли хранятся в отдельной таблице или в зашифрованном виде
-        
+
         if (dbUser) {
             // Проверяем пароль, если он указан в базе данных
-            if (dbUser.password && dbUser.password !== password) {
-                console.error('Неверный пароль для email:', email);
-                return { success: false, message: 'Неверный email или пароль' };
+            // Если пароль есть в БД, он должен совпадать с введенным
+            // Если пароля нет в БД, разрешаем вход без пароля (для обратной совместимости)
+            if (dbUser.password) {
+                if (dbUser.password !== password) {
+                    console.error('Неверный пароль для email:', email);
+                    return { success: false, message: 'Неверный email или пароль' };
+                }
             }
             const user = this._mapUserFromDB(dbUser);
-            
+
             console.log('Пользователь найден в БД:', dbUser);
             console.log('Маппированный пользователь:', user);
-            
+
             // Сохраняем текущего пользователя в localStorage
             const userToSave = {
                 user_id: user.user_id,
@@ -98,14 +102,14 @@ const auth = {
                 department: user.department,
                 department_id: user.department_id
             };
-            
+
             localStorage.setItem('currentUser', JSON.stringify(userToSave));
             console.log('Пользователь сохранен в localStorage:', userToSave);
-            
+
             if (remember) {
                 localStorage.setItem('rememberMe', 'true');
             }
-            
+
             return { success: true, user: user };
         } else {
             console.error('Пользователь не найден в БД для email:', email);
@@ -114,30 +118,30 @@ const auth = {
     },
 
     // Выход из системы
-    logout: function() {
+    logout: function () {
         localStorage.removeItem('currentUser');
         localStorage.removeItem('rememberMe');
         return true;
     },
 
     // Проверка авторизации
-    isAuthenticated: function() {
+    isAuthenticated: function () {
         return this.getCurrentUser() !== null;
     },
 
     // Обновление данных пользователя
-    updateUser: async function(updatedUser) {
+    updateUser: async function (updatedUser) {
         await this.init();
         const updates = {
             full_name: updatedUser.fullName,
             email: updatedUser.email
         };
-        
+
         // Обновляем телефон, если он указан
         if (updatedUser.phone !== undefined) {
             updates.phone = updatedUser.phone || '';
         }
-        
+
         // Обновляем должность и отдел только если они указаны (для администратора)
         if (updatedUser.position !== undefined) {
             updates.position = updatedUser.position || '';
@@ -145,9 +149,9 @@ const auth = {
         if (updatedUser.department_id !== undefined) {
             updates.department_id = updatedUser.department_id || null;
         }
-        
+
         const dbUser = database.update('users', updatedUser.user_id, updates);
-        
+
         if (dbUser) {
             // Обновляем текущего пользователя
             const user = this._mapUserFromDB(dbUser);
@@ -168,7 +172,7 @@ const auth = {
     },
 
     // Смена пароля (в реальном приложении нужна отдельная таблица для паролей)
-    changePassword: async function(currentPassword, newPassword) {
+    changePassword: async function (currentPassword, newPassword) {
         await this.init();
         const user = this.getCurrentUser();
         if (!user) return false;
@@ -180,7 +184,7 @@ const auth = {
     },
 
     // Получить инициалы из имени
-    getInitials: function(fullName) {
+    getInitials: function (fullName) {
         if (!fullName) return '??';
         const parts = fullName.trim().split(' ');
         if (parts.length >= 2) {
@@ -192,7 +196,7 @@ const auth = {
     },
 
     // Получить пользователя по ID
-    getUserById: async function(userId) {
+    getUserById: async function (userId) {
         await this.init();
         const dbUser = database.find('users', u => u.user_id === userId);
         if (dbUser) {
