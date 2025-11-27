@@ -199,8 +199,10 @@
                 const initials = auth.getInitials(fullName);
                 document.getElementById('profileAvatar').textContent = initials;
 
-                // Обновление в header
-                document.getElementById('userName').textContent = fullName;
+                // Обновление в header (только имя и фамилия, без отчества)
+                const nameParts = fullName.trim().split(/\s+/);
+                const shortName = nameParts.length >= 2 ? `${nameParts[0]} ${nameParts[1]}` : fullName;
+                document.getElementById('userName').textContent = shortName;
                 document.getElementById('userRole').textContent = user.role || 'Пользователь';
                 document.getElementById('userAvatar').textContent = initials;
 
@@ -277,8 +279,10 @@
                     const initials = auth.getInitials(updatedUser.fullName);
                     document.getElementById('profileAvatar').textContent = initials;
 
-                    // Обновление в header
-                    document.getElementById('userName').textContent = updatedUser.fullName;
+                    // Обновление в header (только имя и фамилия, без отчества)
+                    const nameParts = updatedUser.fullName.trim().split(/\s+/);
+                    const shortName = nameParts.length >= 2 ? `${nameParts[0]} ${nameParts[1]}` : updatedUser.fullName;
+                    document.getElementById('userName').textContent = shortName;
                     const headerInitials = auth.getInitials(updatedUser.fullName);
                     document.getElementById('userAvatar').textContent = headerInitials;
 

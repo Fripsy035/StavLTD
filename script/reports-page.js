@@ -5,6 +5,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     const REPORTS_ARCHIVE_KEY = 'reports_archive';
+    const REPORTS_PER_PAGE = 6;
+    let archiveCurrentPage = 1;
     const REPORT_TEMPLATES = {
         documents: {
             title: 'Отчет по документообороту',
@@ -91,6 +93,7 @@ document.addEventListener('DOMContentLoaded', function() {
         setupTabs();
         setupActions();
         setupPeriodControls();
+        setupPagination();
         await updateStats();
         renderArchiveReports();
     }
@@ -199,6 +202,18 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    function setupPagination() {
+        document.addEventListener('click', function(e) {
+            const link = e.target.closest('#reportsArchivePagination a[data-page]');
+            if (!link) return;
+            e.preventDefault();
+            const page = parseInt(link.getAttribute('data-page'), 10);
+            if (isNaN(page) || page === archiveCurrentPage) return;
+            archiveCurrentPage = Math.max(1, page);
+            renderArchiveReports();
+        });
+    }
+
     async function handleGenerateReport(type, button) {
         const template = REPORT_TEMPLATES[type];
         if (!template) {
@@ -222,6 +237,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 ...payload
             };
             addReportToArchive(report);
+            archiveCurrentPage = 1; // Сброс на первую страницу при добавлении нового отчета
             renderArchiveReports();
             notify.success('Отчет сформирован. Начинается скачивание файла.');
             downloadReportFile(report);
@@ -334,17 +350,45 @@ document.addEventListener('DOMContentLoaded', function() {
     function renderArchiveReports() {
         const listEl = document.getElementById('reportsArchiveList');
         const emptyEl = document.getElementById('reportsArchiveEmpty');
+        const paginationEl = document.getElementById('reportsArchivePagination');
         if (!listEl || !emptyEl) return;
 
         const archive = getArchiveReports();
         if (archive.length === 0) {
             listEl.innerHTML = '';
             emptyEl.style.display = 'block';
+            if (paginationEl) {
+                paginationEl.innerHTML = '';
+                paginationEl.style.display = 'none';
+            }
+            archiveCurrentPage = 1;
             return;
         }
 
         emptyEl.style.display = 'none';
-        listEl.innerHTML = archive.map(report => createArchiveCard(report)).join('');
+
+        // Пагинация
+        const totalPages = Math.max(1, Math.ceil(archive.length / REPORTS_PER_PAGE));
+        archiveCurrentPage = Math.min(archiveCurrentPage, totalPages);
+        const startIdx = (archiveCurrentPage - 1) * REPORTS_PER_PAGE;
+        const paginatedReports = archive.slice(startIdx, startIdx + REPORTS_PER_PAGE);
+
+        listEl.innerHTML = paginatedReports.map(report => createArchiveCard(report)).join('');
+
+        // Рендеринг пагинации
+        if (paginationEl) {
+            if (totalPages <= 1) {
+                paginationEl.innerHTML = '';
+                paginationEl.style.display = 'none';
+            } else {
+                paginationEl.style.display = 'flex';
+                paginationEl.innerHTML = Array.from({ length: totalPages }, (_, index) => {
+                    const page = index + 1;
+                    const activeClass = page === archiveCurrentPage ? 'active' : '';
+                    return `<li><a href="#" data-page="${page}" class="${activeClass}">${page}</a></li>`;
+                }).join('');
+            }
+        }
     }
 
     function createArchiveCard(report) {

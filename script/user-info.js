@@ -34,7 +34,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const userAvatarEl = document.querySelector('.user-avatar');
 
         if (userNameEl) {
-            userNameEl.textContent = user.fullName || user.name || 'Пользователь';
+            const fullName = user.fullName || user.name || 'Пользователь';
+            const parts = fullName.trim().split(/\s+/);
+            const shortName = parts.length >= 2 ? `${parts[0]} ${parts[1]}` : fullName;
+            userNameEl.textContent = shortName;
         }
 
         if (userRoleEl) {

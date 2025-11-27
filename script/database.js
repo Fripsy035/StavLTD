@@ -196,7 +196,7 @@ const database = {
                     full_name: 'Пророков Максим Евгеньевич',
                     position: 'Главный инженер',
                     department_id: 1,
-                    email: 'ivanov@stav-ltd.ru',
+                    email: 'admin@stav.ltd',
                     phone: '+7 (928) 555-44-33',
                     role: 'admin',
                     is_active: true

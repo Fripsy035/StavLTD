@@ -9,10 +9,10 @@
     "users": [
         {
             "user_id": 1,
-            "full_name": "Иванов Алексей Петрович",
+            "full_name": "Пророков Максим Евгеньевич",
             "position": "Главный инженер",
             "department_id": 1,
-            "email": "ivanov@stav-ltd.ru",
+            "email": "admin@stav.ltd",
             "role": "admin",
             "is_active": true
         }
