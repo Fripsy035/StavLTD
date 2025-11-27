@@ -15,6 +15,8 @@ const database = {
         if (!this._data) {
             this._loadFromStorage();
         }
+        // Дополнительная проверка при каждой инициализации
+        this._ensureDefaultData();
         return this._data;
     },
 
@@ -176,14 +178,38 @@ const database = {
             console.info('Добавлены отсутствующие отделы по умолчанию');
         }
 
-        // Обновляем пароль администратора, если его нет
-        if (Array.isArray(this._data.users)) {
-            const adminUser = this._data.users.find(u => u.user_id === 1 && u.email === 'admin@stav.ltd');
-            if (adminUser && !adminUser.password) {
+        // Обеспечиваем наличие администратора
+        if (!Array.isArray(this._data.users)) {
+            this._data.users = [];
+        }
+        const adminUser = this._data.users.find(u => u.user_id === 1 && u.email === 'admin@stav.ltd');
+        if (!adminUser) {
+            // Создаем администратора, если его нет
+            this._data.users.push({
+                user_id: 1,
+                full_name: 'Пророков Максим Евгеньевич',
+                position: 'Главный инженер',
+                department_id: 1,
+                email: 'admin@stav.ltd',
+                phone: '+7 (928) 555-44-33',
+                password: 'admin123',
+                role: 'admin',
+                is_active: true
+            });
+            changed = true;
+            console.info('Создан администратор по умолчанию');
+        } else {
+            // Обновляем пароль и телефон администратора, если их нет
+            if (!adminUser.password) {
                 adminUser.password = 'admin123';
-                if (!adminUser.phone) {
-                    adminUser.phone = '+7 (928) 555-44-33';
-                }
+                changed = true;
+            }
+            if (!adminUser.phone) {
+                adminUser.phone = '+7 (928) 555-44-33';
+                changed = true;
+            }
+            if (adminUser.full_name !== 'Пророков Максим Евгеньевич') {
+                adminUser.full_name = 'Пророков Максим Евгеньевич';
                 changed = true;
             }
         }

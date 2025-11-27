@@ -68,8 +68,16 @@ const auth = {
     // Вход в систему
     login: async function (email, password, remember) {
         await this.init();
+        // Нормализуем email (убираем пробелы, приводим к нижнему регистру)
+        const normalizedEmail = (email || '').trim().toLowerCase();
         const users = database.getTable('users');
-        const dbUser = users.find(u => u.email === email && u.is_active !== false);
+        console.log('Все пользователи в БД:', users);
+        console.log('Ищем пользователя с email:', normalizedEmail);
+        const dbUser = users.find(u => {
+            const userEmail = (u.email || '').trim().toLowerCase();
+            return userEmail === normalizedEmail && u.is_active !== false;
+        });
+        console.log('Найденный пользователь:', dbUser);
 
         // В реальном приложении пароль должен быть хеширован
         // Для демонстрации используем простую проверку
